@@ -9,6 +9,7 @@ A simple, lightweight reactive UI framework for Roblox that makes building dynam
 - 🧹 **Automatic Cleanup** - No memory leaks - all bindings are automatically cleaned up
 - 📦 **Lightweight** - Minimal dependencies and small footprint
 - 🔒 **Type-Safe** - Full Luau type annotations for better IDE support
+- ✅ **Unit Tested** - Comprehensive test coverage ensures reliability
 
 ## Installation
 
