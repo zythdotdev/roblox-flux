@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[553],{4410:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/zythdotdev/roblox-flux/blob/master","baseUrl":"/roblox-flux/","classOrder":[],"apiCategories":[]}')}}]);

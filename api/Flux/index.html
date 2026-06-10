@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="plugin-moonwave plugin-id-moonwave" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.10.1">
+<title data-rh="true">Flux | roblox-flux</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://zythdotdev.github.io/roblox-flux/api/Flux"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="Flux | roblox-flux"><meta data-rh="true" name="description" content="Client module for mounting and managing GUI instances. Each mount parents the GUI to
+`PlayerGui` and returns a `Controller` that owns the instance&#x27;s lifecycle.
+The caller is responsible for cloning templates before passing them in.
+
+```lua
+local Flux = require(ReplicatedStorage.Flux)
+
+-- Create reactive state
+local coins: Flux.State&lt;number&gt; = Flux:State(0)
+
+-- Clone and mount the GUI
+local gui = ReplicatedStorage.Assets.Gui.CoinScreenGui:Clone()
+local controller = Flux:MountScreenGui(gui)
+
+-- Bind state to UI
+controller:Bind(coins, function(count: number)
+	local frame = controller:GetInstance():FindFirstChild(&quot;Frame&quot;)
+	if frame then
+		local coinsLabel = frame:FindFirstChild(&quot;CoinsLabel&quot;)
+		if coinsLabel and coinsLabel:IsA(&quot;TextLabel&quot;) then
+			coinsLabel.Text = tostring(count)
+		end
+	end
+end)
+
+-- Update state from gameplay
+coins:Set(42)
+```"><meta data-rh="true" property="og:description" content="Client module for mounting and managing GUI instances. Each mount parents the GUI to
+`PlayerGui` and returns a `Controller` that owns the instance&#x27;s lifecycle.
+The caller is responsible for cloning templates before passing them in.
+
+```lua
+local Flux = require(ReplicatedStorage.Flux)
+
+-- Create reactive state
+local coins: Flux.State&lt;number&gt; = Flux:State(0)
+
+-- Clone and mount the GUI
+local gui = ReplicatedStorage.Assets.Gui.CoinScreenGui:Clone()
+local controller = Flux:MountScreenGui(gui)
+
+-- Bind state to UI
+controller:Bind(coins, function(count: number)
+	local frame = controller:GetInstance():FindFirstChild(&quot;Frame&quot;)
+	if frame then
+		local coinsLabel = frame:FindFirstChild(&quot;CoinsLabel&quot;)
+		if coinsLabel and coinsLabel:IsA(&quot;TextLabel&quot;) then
+			coinsLabel.Text = tostring(count)
+		end
+	end
+end)
+
+-- Update state from gameplay
+coins:Set(42)
+```"><link data-rh="true" rel="canonical" href="https://zythdotdev.github.io/roblox-flux/api/Flux"><link data-rh="true" rel="alternate" href="https://zythdotdev.github.io/roblox-flux/api/Flux" hreflang="en"><link data-rh="true" rel="alternate" href="https://zythdotdev.github.io/roblox-flux/api/Flux" hreflang="x-default"><link rel="stylesheet" href="/roblox-flux/assets/css/styles.e8e96400.css">
+<script src="/roblox-flux/assets/js/runtime~main.ffbbed7a.js" defer="defer"></script>
+<script src="/roblox-flux/assets/js/main.95ac3a64.js" defer="defer"></script>
+</head>
+<body>
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/roblox-flux/"><b class="navbar__title text--truncate">roblox-flux</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/roblox-flux/api/">API</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/zythdotdev/roblox-flux" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"><div class="navbar__search"><span aria-label="expand searchbar" role="button" class="search-icon" tabindex="0"></span><input id="search_input_react" type="search" placeholder="Loading..." aria-label="Search" class="navbar__search-input search-bar" disabled=""></div></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_z2l0 docPageContainer_wNNk"><div class="docPage_Dpn1"><div class="docSidebarContainer_o_re"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Bag"><span title="​Bag" class="linkLabel_WmDU">​Bag</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Controller"><span title="​Controller" class="linkLabel_WmDU">​Controller</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Event"><span title="​Event" class="linkLabel_WmDU">​Event</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/EventConnection"><span title="​Event​Connection" class="linkLabel_WmDU">​Event​Connection</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" href="/roblox-flux/api/Flux"><span title="​Flux" class="linkLabel_WmDU">​Flux</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Value"><span title="​Value" class="linkLabel_WmDU">​Value</span></a></li></ul></nav></div></div><main class="docMainContainer_HJE1"><div class="container padding-vert--lg"><div class="row"><div class="col docItemCol_MU3C"><div class="docItemContainer_Wv98"><article><div class="member_J0w1 markdown"><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_oUs_"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><header><h1 class="docTitle_mZRt" style="text-decoration:none"><span style="display:inline-block">Flux</span></h1><div class="luaClassTags_EipM"></div><div>
+<p>
+  Client module for mounting and managing GUI instances. Each mount parents the GUI to
+  <code>PlayerGui</code> and returns a <code>Controller</code> that owns the instance's lifecycle.
+  The caller is responsible for cloning templates before passing them in.
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> Flux <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span>ReplicatedStorage<span class="token punctuation">.</span>Flux<span class="token punctuation">)</span>
+
+<span class="token comment">-- Create reactive state</span>
+<span class="token keyword">local</span> coins<span class="token punctuation">:</span> Flux<span class="token punctuation">.</span>State<span class="token operator">&#x3C;</span>number<span class="token operator">></span> <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">State</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+
+<span class="token comment">-- Clone and mount the GUI</span>
+<span class="token keyword">local</span> gui <span class="token operator">=</span> ReplicatedStorage<span class="token punctuation">.</span>Assets<span class="token punctuation">.</span>Gui<span class="token punctuation">.</span>CoinScreenGui<span class="token punctuation">:</span><span class="token function">Clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">local</span> controller <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">MountScreenGui</span><span class="token punctuation">(</span>gui<span class="token punctuation">)</span>
+
+<span class="token comment">-- Bind state to UI</span>
+controller<span class="token punctuation">:</span><span class="token function">Bind</span><span class="token punctuation">(</span>coins<span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>count<span class="token punctuation">:</span> number<span class="token punctuation">)</span>
+	<span class="token keyword">local</span> frame <span class="token operator">=</span> controller<span class="token punctuation">:</span><span class="token function">GetInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token function">FindFirstChild</span><span class="token punctuation">(</span><span class="token string">"Frame"</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> frame <span class="token keyword">then</span>
+		<span class="token keyword">local</span> coinsLabel <span class="token operator">=</span> frame<span class="token punctuation">:</span><span class="token function">FindFirstChild</span><span class="token punctuation">(</span><span class="token string">"CoinsLabel"</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> coinsLabel <span class="token keyword">and</span> coinsLabel<span class="token punctuation">:</span><span class="token function">IsA</span><span class="token punctuation">(</span><span class="token string">"TextLabel"</span><span class="token punctuation">)</span> <span class="token keyword">then</span>
+			coinsLabel<span class="token punctuation">.</span>Text <span class="token operator">=</span> <span class="token function">tostring</span><span class="token punctuation">(</span>count<span class="token punctuation">)</span>
+		<span class="token keyword">end</span>
+	<span class="token keyword">end</span>
+<span class="token keyword">end</span><span class="token punctuation">)</span>
+
+<span class="token comment">-- Update state from gameplay</span>
+coins<span class="token punctuation">:</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span>
+</code></pre>
+</div></header><h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="types">Types<a href="#types" class="hash-link" aria-label="Direct link to Types" title="Direct link to Types" translate="no">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Scope"><code style="text-decoration:none">Scope</code><a href="#Scope" class="hash-link" aria-label="Direct link to Scope" title="Direct link to Scope" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L16"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>Scope<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>Bind<!-- -->: </code><code class="purple_ieR2">(</code><div class="inset_uKQm"><code class="blue_P4bS">self</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>state<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#State">State</a></code><code class="op_lSLc">&lt;</code><code class="blue_P4bS">T</code><code class="op_lSLc">&gt;</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>callback<!-- -->: </code><code class="green_DgR4">(</code><code>newValue<!-- -->: </code><code class="blue_P4bS">T?</code><code class="green_DgR4">)</code><code class="green_DgR4"> → </code><code class="green_DgR4">(</code><code class="green_DgR4">)</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code><span class="inlineDescription_G7Er">-- <span>
+<p>Binds to a <code>State</code> scoped to this component's lifecycle</p>
+</span></span></div><div><code>Mount<!-- -->: </code><code class="purple_ieR2">(</code><div class="inset_uKQm"><code class="blue_P4bS">self</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>component<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#Component">Component</a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>instance<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>props<!-- -->: </code><code class="green_DgR4">{</code><span><code>[</code><code class="blue_P4bS">string</code><code>]</code></span><code>: </code><code class="blue_P4bS">any</code><code class="green_DgR4">}</code><code class="blue_P4bS">?</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code><span class="inlineDescription_G7Er">-- <span>
+<p>Mounts a child component scoped to this component's lifecycle</p>
+</span></span></div></div><code>}</code></div><div>
+<p>
+  A minimal lifecycle scope passed to each component function. Use <code>Bind</code> to subscribe to reactive state
+  and <code>Mount</code> to compose child components. All bindings and child mounts made through this scope are
+  automatically cleaned up when the parent GUI is unmounted.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Component"><code style="text-decoration:none">Component</code><a href="#Component" class="hash-link" aria-label="Direct link to Component" title="Direct link to Component" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L30"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">type</code> <code>Component<!-- --> = </code> <code class="purple_ieR2">(</code><div class="inset_uKQm"><code>instance<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>scope<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#Scope">Scope</a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>props<!-- -->: </code><code class="green_DgR4">{</code><span><code>[</code><code class="blue_P4bS">string</code><code>]</code></span><code>: </code><code class="blue_P4bS">any</code><code class="green_DgR4">}</code><code class="blue_P4bS">?</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code></div><div>
+<p>
+  A reusable function that applies behavior to a GUI child <code>Instance</code>. Components are mounted to a specific
+  <code>Instance</code> in the GUI hierarchy and can bind to reactive state using the provided <code>Scope</code>. Components
+  should be used for reusable pieces of UI behavior. For example, you might have a "HealthBar" component that
+  you mount to any Frame to turn it into a health bar, or a "Draggable" component that makes any GUI element
+  draggable. Components should not manage the lifecycle of their own <code>Instance</code> (i.e. by destroying it or
+  reparenting it), they should only be responsible for updating the instance's properties in response to state changes,
+  passed down through <code>props</code> or observed via <code>Bind</code>. Let the parent <code>Controller</code> manage the lifecycle of all instances.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="State"><code style="text-decoration:none">State</code><a href="#State" class="hash-link" aria-label="Direct link to State" title="Direct link to State" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L39"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>State<!-- --> <!-- -->{</code><code>}</code></div><div>
+<p>
+  A reactive state object. Create these using <code>Flux:State</code> and pass them to
+  <code>Controller:Bind</code> or <code>Scope:Bind</code> inside components to reactively drive UI updates.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Self"><code style="text-decoration:none">Self</code><a href="#Self" class="hash-link" aria-label="Direct link to Self" title="Direct link to Self" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L52"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">type</code> <code>Self<!-- --> = </code> <code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux">Flux</a></code></div><div></div><h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions" translate="no">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="State"><code style="text-decoration:none">State</code><a href="#State" class="hash-link" aria-label="Direct link to State" title="Direct link to State" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L102"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Flux<!-- -->.</code><code class="green_DgR4">State</code><code>(</code><div class="inset_uKQm"><div><code>_self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux">Flux</a></code><code>,</code></div><div><code>initialValue<!-- -->: </code><code class="blue_P4bS">T?</code><span class="inlineDescription_G7Er">-- <span>
+<p>An optional starting value</p>
+</span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#State">State</a></code><code class="op_lSLc">&lt;</code><code class="blue_P4bS">T</code><code class="op_lSLc">&gt;</code></div><div>
+<p>
+  Creates a new reactive <code>State</code> object that can be bound to GUI updates. Call <code>Set</code> on
+  the returned object to update the state and trigger UI updates.
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> coins<span class="token punctuation">:</span> Flux<span class="token punctuation">.</span>State<span class="token operator">&#x3C;</span>number<span class="token operator">></span> <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">State</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+controller<span class="token punctuation">:</span><span class="token function">Bind</span><span class="token punctuation">(</span>coins<span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>n<span class="token punctuation">:</span> number<span class="token punctuation">)</span> label<span class="token punctuation">.</span>Text <span class="token operator">=</span> <span class="token function">tostring</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span> <span class="token keyword">end</span><span class="token punctuation">)</span>
+coins<span class="token punctuation">:</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="MountScreenGui"><code style="text-decoration:none">MountScreenGui</code><a href="#MountScreenGui" class="hash-link" aria-label="Direct link to MountScreenGui" title="Direct link to MountScreenGui" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L113"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Flux<!-- -->.</code><code class="green_DgR4">MountScreenGui</code><code>(</code><div class="inset_uKQm"><div><code>_self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux">Flux</a></code><code>,</code></div><div><code>gui<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/ScreenGui" target="_blank" rel="noopener noreferrer">ScreenGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_G7Er">-- <span>
+<p>The GUI instance to mount</p>
+</span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Controller">Controller</a></code></div><div>
+<p>
+  Parents the given <code>ScreenGui</code> to the local player's <code>PlayerGui</code> and returns a <code>Controller</code>
+  that owns its lifecycle. The caller is responsible for cloning templates before passing them in.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="MountSurfaceGui"><code style="text-decoration:none">MountSurfaceGui</code><a href="#MountSurfaceGui" class="hash-link" aria-label="Direct link to MountSurfaceGui" title="Direct link to MountSurfaceGui" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L128"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Flux<!-- -->.</code><code class="green_DgR4">MountSurfaceGui</code><code>(</code><div class="inset_uKQm"><div><code>_self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux">Flux</a></code><code>,</code></div><div><code>gui<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/SurfaceGui" target="_blank" rel="noopener noreferrer">SurfaceGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The GUI instance to mount</p>
+</span></span></div><div><code>adornee<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/BasePart" target="_blank" rel="noopener noreferrer">BasePart<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The part the SurfaceGui will be attached to</p>
+</span></span></div><div><code>face<!-- -->: </code><code class="blue_P4bS">Enum.NormalId?</code><span class="inlineDescription_G7Er">-- <span>
+<p>The face of the part the SurfaceGui will be attached to (optional)</p>
+</span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Controller">Controller</a></code></div><div>
+<p>
+  Sets the <code>Adornee</code> (and optionally <code>Face</code>) on the given <code>SurfaceGui</code>, parents it to the local
+  player's <code>PlayerGui</code>, and returns a <code>Controller</code> that owns its lifecycle. The caller is
+  responsible for cloning templates before passing them in.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="MountBillboardGui"><code style="text-decoration:none">MountBillboardGui</code><a href="#MountBillboardGui" class="hash-link" aria-label="Direct link to MountBillboardGui" title="Direct link to MountBillboardGui" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/init.luau#L146"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Flux<!-- -->.</code><code class="green_DgR4">MountBillboardGui</code><code>(</code><div class="inset_uKQm"><div><code>_self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux">Flux</a></code><code>,</code></div><div><code>gui<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/BillboardGui" target="_blank" rel="noopener noreferrer">BillboardGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The GUI instance to mount</p>
+</span></span></div><div><code>adornee<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/BasePart" target="_blank" rel="noopener noreferrer">BasePart<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_G7Er">-- <span>
+<p>The part the BillboardGui will be attached to</p>
+</span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Controller">Controller</a></code></div><div>
+<p>
+  Sets the <code>Adornee</code> on the given <code>BillboardGui</code>, parents it to the local player's <code>PlayerGui</code>,
+  and returns a <code>Controller</code> that owns its lifecycle. The caller is responsible for cloning
+  templates before passing them in.
+</p>
+</div></div></article></div><details><summary>Show raw api</summary><pre style="max-width:100%;white-space:pre-wrap">{
+    &quot;functions&quot;: [
+        {
+            &quot;name&quot;: &quot;State&quot;,
+            &quot;desc&quot;: &quot;Creates a new reactive `State` object that can be bound to GUI updates. Call `Set` on\nthe returned object to update the state and trigger UI updates.\n\n```lua\nlocal coins: Flux.State&lt;number&gt; = Flux:State(0)\ncontroller:Bind(coins, function(n: number) label.Text = tostring(n) end)\ncoins:Set(42)\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;_self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Flux&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;initialValue&quot;,
+                    &quot;desc&quot;: &quot;An optional starting value&quot;,
+                    &quot;lua_type&quot;: &quot;T?&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;State&lt;T&gt;&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 102,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;MountScreenGui&quot;,
+            &quot;desc&quot;: &quot;Parents the given `ScreenGui` to the local player&#x27;s `PlayerGui` and returns a `Controller`\nthat owns its lifecycle. The caller is responsible for cloning templates before passing them in.&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;_self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Flux&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;gui&quot;,
+                    &quot;desc&quot;: &quot;The GUI instance to mount&quot;,
+                    &quot;lua_type&quot;: &quot;ScreenGui&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Controller&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 113,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;MountSurfaceGui&quot;,
+            &quot;desc&quot;: &quot;Sets the `Adornee` (and optionally `Face`) on the given `SurfaceGui`, parents it to the local\nplayer&#x27;s `PlayerGui`, and returns a `Controller` that owns its lifecycle. The caller is\nresponsible for cloning templates before passing them in.&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;_self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Flux&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;gui&quot;,
+                    &quot;desc&quot;: &quot;The GUI instance to mount&quot;,
+                    &quot;lua_type&quot;: &quot;SurfaceGui&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;adornee&quot;,
+                    &quot;desc&quot;: &quot;The part the SurfaceGui will be attached to&quot;,
+                    &quot;lua_type&quot;: &quot;BasePart&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;face&quot;,
+                    &quot;desc&quot;: &quot;The face of the part the SurfaceGui will be attached to (optional)&quot;,
+                    &quot;lua_type&quot;: &quot;Enum.NormalId?&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Controller&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 128,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;MountBillboardGui&quot;,
+            &quot;desc&quot;: &quot;Sets the `Adornee` on the given `BillboardGui`, parents it to the local player&#x27;s `PlayerGui`,\nand returns a `Controller` that owns its lifecycle. The caller is responsible for cloning\ntemplates before passing them in.&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;_self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Flux&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;gui&quot;,
+                    &quot;desc&quot;: &quot;The GUI instance to mount&quot;,
+                    &quot;lua_type&quot;: &quot;BillboardGui&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;adornee&quot;,
+                    &quot;desc&quot;: &quot;The part the BillboardGui will be attached to&quot;,
+                    &quot;lua_type&quot;: &quot;BasePart&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Controller&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 146,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        }
+    ],
+    &quot;properties&quot;: [],
+    &quot;types&quot;: [
+        {
+            &quot;name&quot;: &quot;Scope&quot;,
+            &quot;desc&quot;: &quot;A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state\nand `Mount` to compose child components. All bindings and child mounts made through this scope are\nautomatically cleaned up when the parent GUI is unmounted.&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;Bind&quot;,
+                    &quot;lua_type&quot;: &quot;(self, state: State&lt;T&gt;, callback: (newValue: T?) -&gt; ()) -&gt; ()&quot;,
+                    &quot;desc&quot;: &quot;Binds to a `State` scoped to this component&#x27;s lifecycle&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;Mount&quot;,
+                    &quot;lua_type&quot;: &quot;(self, component: Component, instance: Instance, props: {[string]: any}?) -&gt; ()&quot;,
+                    &quot;desc&quot;: &quot;Mounts a child component scoped to this component&#x27;s lifecycle&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 16,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Component&quot;,
+            &quot;desc&quot;: &quot;A reusable function that applies behavior to a GUI child `Instance`. Components are mounted to a specific\n`Instance` in the GUI hierarchy and can bind to reactive state using the provided `Scope`. Components\nshould be used for reusable pieces of UI behavior. For example, you might have a \&quot;HealthBar\&quot; component that\nyou mount to any Frame to turn it into a health bar, or a \&quot;Draggable\&quot; component that makes any GUI element\ndraggable. Components should not manage the lifecycle of their own `Instance` (i.e. by destroying it or\nreparenting it), they should only be responsible for updating the instance&#x27;s properties in response to state changes,\npassed down through `props` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.&quot;,
+            &quot;lua_type&quot;: &quot;(instance: Instance, scope: Scope, props: {[string]: any}?) -&gt; ()&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 30,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;State&quot;,
+            &quot;desc&quot;: &quot;A reactive state object. Create these using `Flux:State` and pass them to\n`Controller:Bind` or `Scope:Bind` inside components to reactively drive UI updates.&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 39,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Self&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;lua_type&quot;: &quot;Flux&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 52,
+                &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+            }
+        }
+    ],
+    &quot;name&quot;: &quot;Flux&quot;,
+    &quot;desc&quot;: &quot;Client module for mounting and managing GUI instances. Each mount parents the GUI to\n`PlayerGui` and returns a `Controller` that owns the instance&#x27;s lifecycle.\nThe caller is responsible for cloning templates before passing them in.\n\n```lua\nlocal Flux = require(ReplicatedStorage.Flux)\n\n-- Create reactive state\nlocal coins: Flux.State&lt;number&gt; = Flux:State(0)\n\n-- Clone and mount the GUI\nlocal gui = ReplicatedStorage.Assets.Gui.CoinScreenGui:Clone()\nlocal controller = Flux:MountScreenGui(gui)\n\n-- Bind state to UI\ncontroller:Bind(coins, function(count: number)\n\tlocal frame = controller:GetInstance():FindFirstChild(\&quot;Frame\&quot;)\n\tif frame then\n\t\tlocal coinsLabel = frame:FindFirstChild(\&quot;CoinsLabel\&quot;)\n\t\tif coinsLabel and coinsLabel:IsA(\&quot;TextLabel\&quot;) then\n\t\t\tcoinsLabel.Text = tostring(count)\n\t\tend\n\tend\nend)\n\n-- Update state from gameplay\ncoins:Set(42)\n```&quot;,
+    &quot;source&quot;: {
+        &quot;line&quot;: 87,
+        &quot;path&quot;: &quot;src/Flux/init.luau&quot;
+    }
+}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a><ul><li><a href="#Component" class="table-of-contents__link toc-highlight">Component</a></li><li><a href="#Scope" class="table-of-contents__link toc-highlight">Scope</a></li><li><a href="#Self" class="table-of-contents__link toc-highlight">Self</a></li><li><a href="#State" class="table-of-contents__link toc-highlight">State</a></li></ul></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#MountBillboardGui" class="table-of-contents__link toc-highlight">.MountBillboardGui</a></li><li><a href="#MountScreenGui" class="table-of-contents__link toc-highlight">.MountScreenGui</a></li><li><a href="#MountSurfaceGui" class="table-of-contents__link toc-highlight">.MountSurfaceGui</a></li><li><a href="#State" class="table-of-contents__link toc-highlight">.State</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 zythdotdev. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
+</body>
+</html>

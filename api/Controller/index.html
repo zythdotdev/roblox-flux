@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="plugin-moonwave plugin-id-moonwave" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.10.1">
+<title data-rh="true">Controller | roblox-flux</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://zythdotdev.github.io/roblox-flux/api/Controller"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="Controller | roblox-flux"><meta data-rh="true" name="description" content="Controller for a mounted GUI. Returned by every `Mount` method call. A `Controller` manages the lifecycle of
+the GUI `Instance` and all reactive connections. Call `Unmount` to clean up, `Bind` to react to state changes,
+and `Mount` to apply reusable components that are automatically cleaned up when the controller is unmounted.
+Access the GUI hierarchy via `GetInstance()`."><meta data-rh="true" property="og:description" content="Controller for a mounted GUI. Returned by every `Mount` method call. A `Controller` manages the lifecycle of
+the GUI `Instance` and all reactive connections. Call `Unmount` to clean up, `Bind` to react to state changes,
+and `Mount` to apply reusable components that are automatically cleaned up when the controller is unmounted.
+Access the GUI hierarchy via `GetInstance()`."><link data-rh="true" rel="canonical" href="https://zythdotdev.github.io/roblox-flux/api/Controller"><link data-rh="true" rel="alternate" href="https://zythdotdev.github.io/roblox-flux/api/Controller" hreflang="en"><link data-rh="true" rel="alternate" href="https://zythdotdev.github.io/roblox-flux/api/Controller" hreflang="x-default"><link rel="stylesheet" href="/roblox-flux/assets/css/styles.e8e96400.css">
+<script src="/roblox-flux/assets/js/runtime~main.ffbbed7a.js" defer="defer"></script>
+<script src="/roblox-flux/assets/js/main.95ac3a64.js" defer="defer"></script>
+</head>
+<body>
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/roblox-flux/"><b class="navbar__title text--truncate">roblox-flux</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/roblox-flux/api/">API</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/zythdotdev/roblox-flux" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"><div class="navbar__search"><span aria-label="expand searchbar" role="button" class="search-icon" tabindex="0"></span><input id="search_input_react" type="search" placeholder="Loading..." aria-label="Search" class="navbar__search-input search-bar" disabled=""></div></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_z2l0 docPageContainer_wNNk"><div class="docPage_Dpn1"><div class="docSidebarContainer_o_re"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Bag"><span title="​Bag" class="linkLabel_WmDU">​Bag</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" href="/roblox-flux/api/Controller"><span title="​Controller" class="linkLabel_WmDU">​Controller</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Event"><span title="​Event" class="linkLabel_WmDU">​Event</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/EventConnection"><span title="​Event​Connection" class="linkLabel_WmDU">​Event​Connection</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Flux"><span title="​Flux" class="linkLabel_WmDU">​Flux</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-flux/api/Value"><span title="​Value" class="linkLabel_WmDU">​Value</span></a></li></ul></nav></div></div><main class="docMainContainer_HJE1"><div class="container padding-vert--lg"><div class="row"><div class="col docItemCol_MU3C"><div class="docItemContainer_Wv98"><article><div class="member_J0w1 markdown"><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_oUs_"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><header><h1 class="docTitle_mZRt" style="text-decoration:none"><span style="display:inline-block">Controller</span></h1><div class="luaClassTags_EipM"></div><div>
+<p>
+  Controller for a mounted GUI. Returned by every <code>Mount</code> method call. A <code>Controller</code> manages the lifecycle of
+  the GUI <code>Instance</code> and all reactive connections. Call <code>Unmount</code> to clean up, <code>Bind</code> to react to state changes,
+  and <code>Mount</code> to apply reusable components that are automatically cleaned up when the controller is unmounted.
+  Access the GUI hierarchy via <code>GetInstance()</code>.
+</p>
+</div></header><h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="types">Types<a href="#types" class="hash-link" aria-label="Direct link to Types" title="Direct link to Types" translate="no">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Scope"><code style="text-decoration:none">Scope</code><a href="#Scope" class="hash-link" aria-label="Direct link to Scope" title="Direct link to Scope" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L14"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>Scope<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>Bind<!-- -->: </code><code class="purple_ieR2">(</code><div class="inset_uKQm"><code class="blue_P4bS">self</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>state<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#State">State</a></code><code class="op_lSLc">&lt;</code><code class="blue_P4bS">T</code><code class="op_lSLc">&gt;</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>callback<!-- -->: </code><code class="green_DgR4">(</code><code>newValue<!-- -->: </code><code class="blue_P4bS">T?</code><code class="green_DgR4">)</code><code class="green_DgR4"> → </code><code class="green_DgR4">(</code><code class="green_DgR4">)</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code><span class="inlineDescription_G7Er">-- <span>
+<p>Binds to a <code>State</code> scoped to this component's lifecycle</p>
+</span></span></div><div><code>Mount<!-- -->: </code><code class="purple_ieR2">(</code><div class="inset_uKQm"><code class="blue_P4bS">self</code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>component<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#Component">Component</a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>instance<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>props<!-- -->: </code><code class="green_DgR4">{</code><span><code>[</code><code class="blue_P4bS">string</code><code>]</code></span><code>: </code><code class="blue_P4bS">any</code><code class="green_DgR4">}</code><code class="blue_P4bS">?</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code><span class="inlineDescription_G7Er">-- <span>
+<p>Mounts a child component scoped to this component's lifecycle</p>
+</span></span></div></div><code>}</code></div><div>
+<p>
+  A lifecycle scope passed to each component function. Use <code>Bind</code> to subscribe to reactive state and <code>Mount</code>
+  to compose child components. All bindings and child mounts made through this scope are automatically cleaned
+  up when the parent GUI is unmounted.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Component"><code style="text-decoration:none">Component</code><a href="#Component" class="hash-link" aria-label="Direct link to Component" title="Direct link to Component" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L31"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">type</code> <code>Component<!-- --> = </code> <code class="purple_ieR2">(</code><div class="inset_uKQm"><code>instance<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>scope<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#Scope">Scope</a></code><code class="purple_ieR2">,</code></div><div class="inset_uKQm"><code>props<!-- -->: </code><code class="green_DgR4">{</code><span><code>[</code><code class="blue_P4bS">string</code><code>]</code></span><code>: </code><code class="blue_P4bS">any</code><code class="green_DgR4">}</code><code class="blue_P4bS">?</code></div><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code></div><div>
+<p>
+  A reusable function that applies behavior to a GUI child <code>Instance</code>. Components are mounted to a specific
+  <code>Instance</code> in the GUI hierarchy and can bind to reactive state using the provided <code>Scope</code>. Components
+  should be used for reusable pieces of UI behavior. For example, you might have a "HealthBar" component that
+  you mount to any Frame to turn it into a health bar, or a "Draggable" component that makes a GUI element
+  draggable. Components should not manage the lifecycle of their own <code>Instance</code> (i.e. by destroying it or
+  reparenting it), they should only be responsible for updating the instance's properties in response to state changes,
+  passed down through <code>props</code> or observed via <code>Bind</code>. Let the parent <code>Controller</code> manage the lifecycle of all instances.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="State"><code style="text-decoration:none">State</code><a href="#State" class="hash-link" aria-label="Direct link to State" title="Direct link to State" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L40"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>State<!-- --> <!-- -->{</code><code>}</code></div><div>
+<p>
+  A reactive state object. Create these using <code>Flux:State</code> and pass them to
+  <code>Controller:Bind</code> or <code>Scope:Bind</code> inside components to reactively drive UI updates.
+</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Self"><code style="text-decoration:none">Self</code><a href="#Self" class="hash-link" aria-label="Direct link to Self" title="Direct link to Self" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L56"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">type</code> <code>Self<!-- --> = </code> <code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Controller">Controller</a></code></div><div></div><h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions" translate="no">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="new"><code style="text-decoration:none">new</code><a href="#new" class="hash-link" aria-label="Direct link to new" title="Direct link to new" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L92"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Controller<!-- -->.</code><code class="green_DgR4">new</code><code>(</code><div class="inset_uKQm"><div><code>gui<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/ScreenGui" target="_blank" rel="noopener noreferrer">ScreenGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="op_lSLc"> | </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/SurfaceGui" target="_blank" rel="noopener noreferrer">SurfaceGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="op_lSLc"> | </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/BillboardGui" target="_blank" rel="noopener noreferrer">BillboardGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_G7Er">-- <span>
+<p>The GUI instance to manage</p>
+</span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Controller">Controller</a></code><span class="inlineDescription_G7Er">-- <span>
+<p>A new Controller for the given GUI instance</p>
+</span></span></div><div>
+<p>Creates a new Controller for the given GUI instance.</p>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Unmount"><code style="text-decoration:none">Unmount</code><a href="#Unmount" class="hash-link" aria-label="Direct link to Unmount" title="Direct link to Unmount" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L111"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Controller<!-- -->.</code><code class="green_DgR4">Unmount</code><code>(</code><code>self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Value#Self">Self</a></code><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Destroys the GUI <code>Instance</code> and disconnects all bindings. This should be called when you
+  are finished with the GUI to properly clean up resources and prevent memory leaks.
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> controller <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">MountScreenGui</span><span class="token punctuation">(</span>gui<span class="token punctuation">)</span>
+controller<span class="token punctuation">:</span><span class="token function">Unmount</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">-- Clean up when done</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="GetInstance"><code style="text-decoration:none">GetInstance</code><a href="#GetInstance" class="hash-link" aria-label="Direct link to GetInstance" title="Direct link to GetInstance" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L126"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Controller<!-- -->.</code><code class="green_DgR4">GetInstance</code><code>(</code><code>self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Value#Self">Self</a></code><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/ScreenGui" target="_blank" rel="noopener noreferrer">ScreenGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="op_lSLc"> | </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/SurfaceGui" target="_blank" rel="noopener noreferrer">SurfaceGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code class="op_lSLc"> | </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/class/BillboardGui" target="_blank" rel="noopener noreferrer">BillboardGui<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><span class="inlineDescription_G7Er">-- <span>
+<p>The managed GUI instance</p>
+</span></span></div><div>
+<p>Returns the GUI instance managed by this controller.</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> gui <span class="token operator">=</span> controller<span class="token punctuation">:</span><span class="token function">GetInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">local</span> frame <span class="token operator">=</span> gui<span class="token punctuation">:</span><span class="token function">FindFirstChild</span><span class="token punctuation">(</span><span class="token string">"Frame"</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Mount"><code style="text-decoration:none">Mount</code><a href="#Mount" class="hash-link" aria-label="Direct link to Mount" title="Direct link to Mount" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L154"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Controller<!-- -->.</code><code class="green_DgR4">Mount</code><code>(</code><div class="inset_uKQm"><div><code>self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Value#Self">Self</a></code><code>,</code></div><div><code>component<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#Component">Component</a></code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The component function to apply</p>
+</span></span></div><div><code>instance<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="https://developer.roblox.com/en-us/api-reference/datatype/Instance" target="_blank" rel="noopener noreferrer">Instance<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound" style="color:gray;vertical-align:middle;margin-left:2px"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The GUI instance to pass to the component</p>
+</span></span></div><div><code>props<!-- -->: </code><code class="purple_ieR2">{</code><span><code>[</code><code class="blue_P4bS">string</code><code>]</code></span><code>: </code><code class="blue_P4bS">any</code><code class="purple_ieR2">}</code><code class="blue_P4bS">?</code><span class="inlineDescription_G7Er">-- <span>
+<p>Optional props table to pass to the component</p>
+</span></span></div></div><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Applies a reusable <code>Component</code> function to a child instance. The component receives a <code>Scope</code>
+  that allows it to bind to reactive state. All bindings made by the component are automatically
+  cleaned up when the controller is unmounted.
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> <span class="token keyword">function</span> <span class="token function">HealthBar</span><span class="token punctuation">(</span>instance<span class="token punctuation">:</span> Instance<span class="token punctuation">,</span> scope<span class="token punctuation">:</span> Flux<span class="token punctuation">.</span>Scope<span class="token punctuation">,</span> props<span class="token punctuation">:</span> <span class="token punctuation">{</span>health<span class="token punctuation">:</span> Flux<span class="token punctuation">.</span>State<span class="token operator">&#x3C;</span>number<span class="token operator">></span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+	scope<span class="token punctuation">:</span><span class="token function">Bind</span><span class="token punctuation">(</span>props<span class="token punctuation">.</span>health<span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>hp<span class="token punctuation">:</span> number<span class="token punctuation">)</span>
+		<span class="token keyword">local</span> bar<span class="token punctuation">:</span> Frame <span class="token operator">=</span> instance <span class="token punctuation">::</span> Frame
+		bar<span class="token punctuation">.</span>Size <span class="token operator">=</span> UDim2<span class="token punctuation">.</span><span class="token function">fromScale</span><span class="token punctuation">(</span>hp <span class="token operator">/</span> <span class="token number">100</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+	<span class="token keyword">end</span><span class="token punctuation">)</span>
+<span class="token keyword">end</span>
+
+<span class="token keyword">local</span> healthState <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">State</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span>
+<span class="token keyword">local</span> healthBarFrame <span class="token operator">=</span> controller<span class="token punctuation">:</span><span class="token function">GetInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token function">FindFirstChild</span><span class="token punctuation">(</span><span class="token string">"HealthBarFrame"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> healthBarFrame <span class="token keyword">then</span>
+	controller<span class="token punctuation">:</span><span class="token function">Mount</span><span class="token punctuation">(</span>HealthBar<span class="token punctuation">,</span> healthBarFrame<span class="token punctuation">,</span> <span class="token punctuation">{</span>health <span class="token operator">=</span> healthState<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">end</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="Bind"><code style="text-decoration:none">Bind</code><a href="#Bind" class="hash-link" aria-label="Direct link to Bind" title="Direct link to Bind" translate="no">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/zythdotdev/roblox-flux/blob/master/src/Flux/Controller.luau#L179"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Controller<!-- -->.</code><code class="green_DgR4">Bind</code><code>(</code><div class="inset_uKQm"><div><code>self<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Value#Self">Self</a></code><code>,</code></div><div><code>state<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-flux/api/Flux#State">State</a></code><code class="op_lSLc">&lt;</code><code class="blue_P4bS">T</code><code class="op_lSLc">&gt;</code><code>,</code><span class="inlineDescription_G7Er">-- <span>
+<p>The reactive state to observe</p>
+</span></span></div><div><code>callback<!-- -->: </code><code class="purple_ieR2">(</code><code>newValue<!-- -->: </code><code class="blue_P4bS">T?</code><code class="purple_ieR2">)</code><code class="purple_ieR2"> → </code><code class="purple_ieR2">(</code><code class="purple_ieR2">)</code><span class="inlineDescription_G7Er">-- <span>
+<p>Function to call with the current and future values</p>
+</span></span></div></div><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Binds to a <code>State</code> object so that <code>callback</code> fires immediately with the current value,
+  and then again every time the state changes. The binding is automatically cleaned up when
+  the controller is unmounted.
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> coins<span class="token punctuation">:</span> Flux<span class="token punctuation">.</span>State<span class="token operator">&#x3C;</span>number<span class="token operator">></span> <span class="token operator">=</span> Flux<span class="token punctuation">:</span><span class="token function">State</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+controller<span class="token punctuation">:</span><span class="token function">Bind</span><span class="token punctuation">(</span>coins<span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>count<span class="token punctuation">:</span> number<span class="token punctuation">)</span>
+	<span class="token keyword">local</span> label <span class="token operator">=</span> controller<span class="token punctuation">:</span><span class="token function">GetInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token function">FindFirstChild</span><span class="token punctuation">(</span><span class="token string">"CoinsLabel"</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> label <span class="token keyword">and</span> label<span class="token punctuation">:</span><span class="token function">IsA</span><span class="token punctuation">(</span><span class="token string">"TextLabel"</span><span class="token punctuation">)</span> <span class="token keyword">then</span>
+		label<span class="token punctuation">.</span>Text <span class="token operator">=</span> <span class="token function">tostring</span><span class="token punctuation">(</span>count<span class="token punctuation">)</span>
+	<span class="token keyword">end</span>
+<span class="token keyword">end</span><span class="token punctuation">)</span>
+</code></pre>
+</div></div></article></div><details><summary>Show raw api</summary><pre style="max-width:100%;white-space:pre-wrap">{
+    &quot;functions&quot;: [
+        {
+            &quot;name&quot;: &quot;new&quot;,
+            &quot;desc&quot;: &quot;Creates a new Controller for the given GUI instance.&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;gui&quot;,
+                    &quot;desc&quot;: &quot;The GUI instance to manage&quot;,
+                    &quot;lua_type&quot;: &quot;ScreenGui | SurfaceGui | BillboardGui&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;A new Controller for the given GUI instance&quot;,
+                    &quot;lua_type&quot;: &quot;Controller&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 92,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Unmount&quot;,
+            &quot;desc&quot;: &quot;Destroys the GUI `Instance` and disconnects all bindings. This should be called when you\nare finished with the GUI to properly clean up resources and prevent memory leaks.\n\n```lua\nlocal controller = Flux:MountScreenGui(gui)\ncontroller:Unmount() -- Clean up when done\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Self&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 111,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;GetInstance&quot;,
+            &quot;desc&quot;: &quot;Returns the GUI instance managed by this controller.\n\n```lua\nlocal gui = controller:GetInstance()\nlocal frame = gui:FindFirstChild(\&quot;Frame\&quot;)\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Self&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;The managed GUI instance&quot;,
+                    &quot;lua_type&quot;: &quot;ScreenGui | SurfaceGui | BillboardGui&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 126,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Mount&quot;,
+            &quot;desc&quot;: &quot;Applies a reusable `Component` function to a child instance. The component receives a `Scope`\nthat allows it to bind to reactive state. All bindings made by the component are automatically\ncleaned up when the controller is unmounted.\n\n\n```lua\nlocal function HealthBar(instance: Instance, scope: Flux.Scope, props: {health: Flux.State&lt;number&gt;})\n\tscope:Bind(props.health, function(hp: number)\n\t\tlocal bar: Frame = instance :: Frame\n\t\tbar.Size = UDim2.fromScale(hp / 100, 1)\n\tend)\nend\n\nlocal healthState = Flux:State(100)\nlocal healthBarFrame = controller:GetInstance():FindFirstChild(\&quot;HealthBarFrame\&quot;)\nif healthBarFrame then\n\tcontroller:Mount(HealthBar, healthBarFrame, {health = healthState})\nend\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Self&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;component&quot;,
+                    &quot;desc&quot;: &quot;The component function to apply&quot;,
+                    &quot;lua_type&quot;: &quot;Component&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;instance&quot;,
+                    &quot;desc&quot;: &quot;The GUI instance to pass to the component&quot;,
+                    &quot;lua_type&quot;: &quot;Instance&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;props&quot;,
+                    &quot;desc&quot;: &quot;Optional props table to pass to the component&quot;,
+                    &quot;lua_type&quot;: &quot;{[string]: any}?&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 154,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Bind&quot;,
+            &quot;desc&quot;: &quot;Binds to a `State` object so that `callback` fires immediately with the current value,\nand then again every time the state changes. The binding is automatically cleaned up when\nthe controller is unmounted.\n\n```lua\nlocal coins: Flux.State&lt;number&gt; = Flux:State(0)\ncontroller:Bind(coins, function(count: number)\n\tlocal label = controller:GetInstance():FindFirstChild(\&quot;CoinsLabel\&quot;)\n\tif label and label:IsA(\&quot;TextLabel\&quot;) then\n\t\tlabel.Text = tostring(count)\n\tend\nend)\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;self&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Self&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;state&quot;,
+                    &quot;desc&quot;: &quot;The reactive state to observe&quot;,
+                    &quot;lua_type&quot;: &quot;State&lt;T&gt;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;callback&quot;,
+                    &quot;desc&quot;: &quot;Function to call with the current and future values&quot;,
+                    &quot;lua_type&quot;: &quot;(newValue: T?) -&gt; ()&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 179,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        }
+    ],
+    &quot;properties&quot;: [],
+    &quot;types&quot;: [
+        {
+            &quot;name&quot;: &quot;Scope&quot;,
+            &quot;desc&quot;: &quot;A lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state and `Mount`\nto compose child components. All bindings and child mounts made through this scope are automatically cleaned\nup when the parent GUI is unmounted.&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;Bind&quot;,
+                    &quot;lua_type&quot;: &quot;(self, state: State&lt;T&gt;, callback: (newValue: T?) -&gt; ()) -&gt; ()&quot;,
+                    &quot;desc&quot;: &quot;Binds to a `State` scoped to this component&#x27;s lifecycle&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;Mount&quot;,
+                    &quot;lua_type&quot;: &quot;(self, component: Component, instance: Instance, props: {[string]: any}?) -&gt; ()&quot;,
+                    &quot;desc&quot;: &quot;Mounts a child component scoped to this component&#x27;s lifecycle&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 14,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Component&quot;,
+            &quot;desc&quot;: &quot;A reusable function that applies behavior to a GUI child `Instance`. Components are mounted to a specific\n`Instance` in the GUI hierarchy and can bind to reactive state using the provided `Scope`. Components\nshould be used for reusable pieces of UI behavior. For example, you might have a \&quot;HealthBar\&quot; component that\nyou mount to any Frame to turn it into a health bar, or a \&quot;Draggable\&quot; component that makes a GUI element\ndraggable. Components should not manage the lifecycle of their own `Instance` (i.e. by destroying it or\nreparenting it), they should only be responsible for updating the instance&#x27;s properties in response to state changes,\npassed down through `props` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.&quot;,
+            &quot;lua_type&quot;: &quot;(instance: Instance, scope: Scope, props: {[string]: any}?) -&gt; ()&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 31,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;State&quot;,
+            &quot;desc&quot;: &quot;A reactive state object. Create these using `Flux:State` and pass them to\n`Controller:Bind` or `Scope:Bind` inside components to reactively drive UI updates.&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 40,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Self&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;lua_type&quot;: &quot;Controller&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 56,
+                &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+            }
+        }
+    ],
+    &quot;name&quot;: &quot;Controller&quot;,
+    &quot;desc&quot;: &quot;Controller for a mounted GUI. Returned by every `Mount` method call. A `Controller` manages the lifecycle of\nthe GUI `Instance` and all reactive connections. Call `Unmount` to clean up, `Bind` to react to state changes,\nand `Mount` to apply reusable components that are automatically cleaned up when the controller is unmounted.\nAccess the GUI hierarchy via `GetInstance()`.&quot;,
+    &quot;source&quot;: {
+        &quot;line&quot;: 66,
+        &quot;path&quot;: &quot;src/Flux/Controller.luau&quot;
+    }
+}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a><ul><li><a href="#Component" class="table-of-contents__link toc-highlight">Component</a></li><li><a href="#Scope" class="table-of-contents__link toc-highlight">Scope</a></li><li><a href="#Self" class="table-of-contents__link toc-highlight">Self</a></li><li><a href="#State" class="table-of-contents__link toc-highlight">State</a></li></ul></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#Bind" class="table-of-contents__link toc-highlight">.Bind</a></li><li><a href="#GetInstance" class="table-of-contents__link toc-highlight">.GetInstance</a></li><li><a href="#Mount" class="table-of-contents__link toc-highlight">.Mount</a></li><li><a href="#new" class="table-of-contents__link toc-highlight">.new</a></li><li><a href="#Unmount" class="table-of-contents__link toc-highlight">.Unmount</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 zythdotdev. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
+</body>
+</html>
