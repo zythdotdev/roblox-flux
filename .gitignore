@@ -15,3 +15,6 @@ wally.lock
 
 # Luau Language Server
 sourcemap.json
+
+# Moonwave
+build

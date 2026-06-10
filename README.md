@@ -372,10 +372,6 @@ addCoins(10)
 controller:Unmount()
 ```
 
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
 ## Author
 
 Joe Lunn ([@zythdotdev](https://github.com/zythdotdev))
