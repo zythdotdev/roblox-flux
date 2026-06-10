@@ -1,0 +1,14 @@
+[package]
+name = "zythdotdev/flux"
+description = "A simple reactive UI framework for Roblox"
+version = "0.1.0"
+license = "MIT"
+realm = "shared"
+registry = "https://github.com/UpliftGames/wally-index"
+private = true
+
+[dependencies]
+Event = "zythdotdev/event@2.0.1"
+Connection = "zythdotdev/connection@2.0.1"
+Bag = "zythdotdev/bag@2.0.0"
+Value = "zythdotdev/value@2.0.1"

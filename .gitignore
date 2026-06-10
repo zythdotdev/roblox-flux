@@ -1,0 +1,17 @@
+# Roblox
+*.rbxlx
+*.rbxlx.lock
+*.rbxl
+*.rbxl.lock
+*.rbxmx
+*.rbxm
+
+# Selene
+roblox.toml
+
+# Wally
+Packages
+wally.lock
+
+# Luau Language Server
+sourcemap.json

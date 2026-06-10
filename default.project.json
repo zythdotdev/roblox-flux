@@ -1,0 +1,22 @@
+{
+	"name": "roblox-flux",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$path": "example/Client",
+			"Packages": {
+				"$className": "Folder",
+				"$path": "src"
+			},
+			"Tests": {
+				"$className": "Folder",
+				"$path": "test/Specs"
+			}
+		},
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"$path": "example/Server"
+		}
+	}
+}
