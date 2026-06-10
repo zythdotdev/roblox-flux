@@ -278,7 +278,50 @@ controller:Unmount()
 
 This destroys the GUI instance and disconnects all bindings, preventing memory leaks.
 
-## API Reference
+## Best Practices
+
+1. **Always unmount** - Call `controller:Unmount()` when you're done with a GUI
+2. **Check for nil** - Always check if `FindFirstChild()` returns a valid instance
+3. **Use components** - Encapsulate reusable UI behavior in component functions
+4. **One state, many bindings** - Multiple UI elements can bind to the same state
+5. **Organize state** - Keep related state together in a module
+
+## Example (Coin Counter)
+
+```lua
+local Flux = require(ReplicatedStorage.Flux)
+
+-- Create the coin state
+local coinState = Flux:State(0)
+
+-- Clone and mount the GUI
+local gui = ReplicatedStorage.Assets.Gui.CoinGui:Clone()
+local controller = Flux:MountScreenGui(gui)
+
+-- Bind coin state to UI updates
+controller:Bind(coinState, function(coins: number)
+    local coinFrame = controller:GetInstance():FindFirstChild("CoinFrame")
+    if coinFrame then
+        local label = coinFrame:FindFirstChild("CoinLabel")
+        if label and label:IsA("TextLabel") then
+            label.Text = tostring(coins) .. " Coins"
+        end
+    end
+end)
+
+-- Update coins from gameplay events
+local function addCoins(amount: number)
+    local current = coinState:Get() or 0
+    coinState:Set(current + amount)
+end
+
+addCoins(10)
+
+-- Cleanup when done
+controller:Unmount()
+```
+
+## API Overview
 
 ### Flux
 
@@ -328,50 +371,3 @@ Binds a state to a callback. Automatically cleaned up when component unmounts.
 
 #### `:Mount(component: Component, instance: Instance, props: {[string]: any}?) -> ()`
 Mounts a child component whose lifecycle is tied to this scope. Supports arbitrary nesting depth.
-
-## Best Practices
-
-1. **Always unmount** - Call `controller:Unmount()` when you're done with a GUI
-2. **Check for nil** - Always check if `FindFirstChild()` returns a valid instance
-3. **Use components** - Encapsulate reusable UI behavior in component functions
-4. **One state, many bindings** - Multiple UI elements can bind to the same state
-5. **Organize state** - Keep related state together in a module
-
-## Example: Coin Counter
-
-```lua
-local Flux = require(ReplicatedStorage.Flux)
-
--- Create the coin state
-local coinState = Flux:State(0)
-
--- Clone and mount the GUI
-local gui = ReplicatedStorage.Assets.Gui.CoinGui:Clone()
-local controller = Flux:MountScreenGui(gui)
-
--- Bind coin state to UI updates
-controller:Bind(coinState, function(coins: number)
-    local coinFrame = controller:GetInstance():FindFirstChild("CoinFrame")
-    if coinFrame then
-        local label = coinFrame:FindFirstChild("CoinLabel")
-        if label and label:IsA("TextLabel") then
-            label.Text = tostring(coins) .. " Coins"
-        end
-    end
-end)
-
--- Update coins from gameplay events
-local function addCoins(amount: number)
-    local current = coinState:Get() or 0
-    coinState:Set(current + amount)
-end
-
-addCoins(10)
-
--- Cleanup when done
-controller:Unmount()
-```
-
-## Author
-
-Joe Lunn ([@zythdotdev](https://github.com/zythdotdev))
