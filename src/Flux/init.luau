@@ -1,47 +1,48 @@
 local Players = game:GetService("Players")
 
 local Value = require(script.Packages.Value)
-local GuiController = require(script.GuiController)
+local Controller = require(script.Controller)
 
 --[=[
 	@within Flux
-	@interface GuiScope
-	@field Bind (self, state: GuiState<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `GuiState` scoped to this component's lifecycle
+	@interface Scope
+	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
+	@field Mount (self, component: Component, instance: Instance, props: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
 
-	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state. All bindings made
-	through this scope are automatically cleaned up when the parent GUI is unmounted, so you don't have to worry about
-	disconnecting them manually.
+	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state
+	and `Mount` to compose child components. All bindings and child mounts made through this scope are
+	automatically cleaned up when the parent GUI is unmounted.
 ]=]
-export type GuiScope = GuiController.GuiScope
+export type Scope = Controller.Scope
 
 --[=[
 	@within Flux
-	@type GuiComponent (instance: Instance, scope: GuiScope, props: {[string]: any}?) -> ()
+	@type Component (instance: Instance, scope: Scope, props: {[string]: any}?) -> ()
 
 	A reusable function that applies behavior to a GUI child `Instance`. Components are mounted to a specific
-	`Instance` in the GUI hierarchy and can bind to reactive state using the provided `GuiScope`. Components
+	`Instance` in the GUI hierarchy and can bind to reactive state using the provided `Scope`. Components
 	should be used for reusable pieces of UI behavior. For example, you might have a "HealthBar" component that
 	you mount to any Frame to turn it into a health bar, or a "Draggable" component that makes any GUI element
 	draggable. Components should not manage the lifecycle of their own `Instance` (i.e. by destroying it or
 	reparenting it), they should only be responsible for updating the instance's properties in response to state changes,
-	passed down through `props` or observed via `Bind`. Let the parent `GuiController` manage the lifecycle of all instances.
+	passed down through `props` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.
 ]=]
-export type GuiComponent = GuiController.GuiComponent
+export type Component = Controller.Component
 
 --[=[
 	@within Flux
-	@interface GuiState
+	@interface State
 
 	A reactive state object. Create these using `Flux:State` and pass them to
-	`GuiController:Bind` or `GuiScope:Bind` inside components to reactively drive UI updates.
+	`Controller:Bind` or `Scope:Bind` inside components to reactively drive UI updates.
 ]=]
-export type GuiState<T> = Value.Self<T>
+export type State<T> = Value.Self<T>
 
 type Flux = {
-	State: <T>(self: Flux, initialValue: T?) -> GuiState<T>,
-	MountScreenGuiAsync: (self: Flux, gui: ScreenGui) -> GuiController.Self,
-	MountSurfaceGuiAsync: (self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> GuiController.Self,
-	MountBillboardGuiAsync: (self: Flux, gui: BillboardGui, adornee: BasePart) -> GuiController.Self,
+	State: <T>(self: Flux, initialValue: T?) -> State<T>,
+	MountScreenGui: (self: Flux, gui: ScreenGui) -> Controller.Self,
+	MountSurfaceGui: (self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller.Self,
+	MountBillboardGui: (self: Flux, gui: BillboardGui, adornee: BasePart) -> Controller.Self,
 }
 
 --[=[
@@ -54,121 +55,98 @@ export type Self = Flux
 --[=[
 	@class Flux
 
-	Client module for mounting and unmounting GUI instances built in-engine and stored under
-	`ReplicatedStorage/Assets/Gui`. Each mount clones the asset, parents it appropriately,
-	and returns a `GuiController` that owns the GUI instance's lifecycle.
-
-	:::note
-	Give each GUI its own module in `Modules/ClientModules/Gui/` that manages state, mounts via Flux, and
-	exposes a typed public API. This keeps all GUI-related code in one place and makes it easy to manage
-	the lifecycle of each GUI.
-	:::
+	Client module for mounting and managing GUI instances. Each mount parents the GUI to
+	`PlayerGui` and returns a `Controller` that owns the instance's lifecycle.
+	The caller is responsible for cloning templates before passing them in.
 
 	```lua
-	local Flux = require(MVDK.ClientModules.Flux)
+	local Flux = require(ReplicatedStorage.Flux)
 
-	local coins: Flux.GuiState<number> = Flux:State(0) -- Create reactive state for the coin count
+	-- Create reactive state
+	local coins: Flux.State<number> = Flux:State(0)
 
-	local CoinGui = {}
+	-- Clone and mount the GUI
+	local gui = ReplicatedStorage.Assets.Gui.CoinScreenGui:Clone()
+	local controller = Flux:MountScreenGui(gui)
 
-	function CoinGui.Init(_self)
-		local controller = Flux:MountScreenGuiAsync("CoinScreenGui")
-		controller:Bind(coins, function(count: number)
-			local coinsLabel: TextLabel = controller:Get("Frame", "CoinsLabel")
-			coinsLabel.Text = tostring(count)
-		end)
-	end
+	-- Bind state to UI
+	controller:Bind(coins, function(count: number)
+		local frame = controller:GetInstance():FindFirstChild("Frame")
+		if frame then
+			local coinsLabel = frame:FindFirstChild("CoinsLabel")
+			if coinsLabel and coinsLabel:IsA("TextLabel") then
+				coinsLabel.Text = tostring(count)
+			end
+		end
+	end)
 
-	function CoinGui.SetCoins(_self, count: number)
-		coins:Set(count)
-	end
-
-	return CoinGui
+	-- Update state from gameplay
+	coins:Set(42)
 	```
 ]=]
 local Flux = {}
 
 --[=[
 	@param initialValue T? -- An optional starting value
-	@return GuiState<T>
+	@return State<T>
 
-	Creates a new reactive `GuiState` object that can be bound to GUI updates. Call `Set` on
+	Creates a new reactive `State` object that can be bound to GUI updates. Call `Set` on
 	the returned object to update the state and trigger UI updates.
 
 	```lua
-	local coins: Flux.GuiState<number> = Flux:State(0)
+	local coins: Flux.State<number> = Flux:State(0)
 	controller:Bind(coins, function(n: number) label.Text = tostring(n) end)
 	coins:Set(42)
 	```
 ]=]
-function Flux.State<T>(_self: Flux, initialValue: T?): GuiState<T>
+function Flux.State<T>(_self: Flux, initialValue: T?): State<T>
 	return Value.new(initialValue)
 end
 
 --[=[
-	@yields
-	@param gui ScreenGui -- The GUI asset to mount
-	@return GuiController
+	@param gui ScreenGui -- The GUI instance to mount
+	@return Controller
 
-	Clones the named asset from `ReplicatedStorage/Assets/Gui/<guiName>`, parents it to the
-	local player's `PlayerGui`, and returns a `GuiController`. This method will yield if the player's
-	`PlayerGui` is not immediately available, so it should be called from a context where yielding
-	is allowed (e.g. not from a constructor or property initializer that's invoked synchronously).
+	Parents the given `ScreenGui` to the local player's `PlayerGui` and returns a `Controller`
+	that owns its lifecycle. The caller is responsible for cloning templates before passing them in.
 ]=]
-function Flux.MountScreenGuiAsync(_self: Flux, gui: ScreenGui): GuiController.Self
-	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-
-	local clone = gui:Clone()
-	clone.Parent = playerGui
-
-	return GuiController.new(clone)
+function Flux.MountScreenGui(_self: Flux, gui: ScreenGui): Controller.Self
+	gui.Parent = Players.LocalPlayer.PlayerGui
+	return Controller.new(gui)
 end
 
 --[=[
-	@yields
-	@param gui SurfaceGui -- The GUI asset to mount
+	@param gui SurfaceGui -- The GUI instance to mount
 	@param adornee BasePart -- The part the SurfaceGui will be attached to
 	@param face Enum.NormalId? -- The face of the part the SurfaceGui will be attached to (optional)
-	@return GuiController
+	@return Controller
 
-	Clones the named asset from `ReplicatedStorage/Assets/Gui/<guiName>`, sets its `Adornee`,
-	parents it to the adornee part, sets its `Face` if provided, and returns a `GuiController`.
-	This method will yield if the player's `PlayerGui` is not immediately available, so it should
-	be called from a context where yielding is allowed (e.g. not from a constructor or property 
-	initializer that's invoked synchronously).
+	Sets the `Adornee` (and optionally `Face`) on the given `SurfaceGui`, parents it to the local
+	player's `PlayerGui`, and returns a `Controller` that owns its lifecycle. The caller is
+	responsible for cloning templates before passing them in.
 ]=]
-function Flux.MountSurfaceGuiAsync(_self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?): GuiController.Self
-	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-
-	local clone = gui:Clone()
-	clone.Parent = playerGui
-	clone.Adornee = adornee
+function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?): Controller.Self
+	gui.Adornee = adornee
 	if face then
-		clone.Face = face
+		gui.Face = face
 	end
-
-	return GuiController.new(clone)
+	gui.Parent = Players.LocalPlayer.PlayerGui
+	return Controller.new(gui)
 end
 
 --[=[
-	@yields
-	@param gui BillboardGui -- The GUI asset to mount
+	@param gui BillboardGui -- The GUI instance to mount
 	@param adornee BasePart -- The part the BillboardGui will be attached to
-	@return GuiController
+	@return Controller
 
-	Clones the named asset from `ReplicatedStorage/Assets/Gui/<guiName>`, sets its `Adornee`,
-	parents it to the adornee part, and returns a `GuiController`. This method will yield if the
-	player's `PlayerGui` is not immediately available, so it should be called from a context where
-	yielding is allowed (e.g. not from a constructor or property initializer that's invoked synchronously).
+	Sets the `Adornee` on the given `BillboardGui`, parents it to the local player's `PlayerGui`,
+	and returns a `Controller` that owns its lifecycle. The caller is responsible for cloning
+	templates before passing them in.
 ]=]
-function Flux.MountBillboardGuiAsync(_self: Flux, gui: BillboardGui, adornee: BasePart): GuiController.Self
-	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-
-	local clone = gui:Clone()
-	clone.Parent = playerGui
-	clone.Adornee = adornee
-
-	return GuiController.new(clone)
+function Flux.MountBillboardGui(_self: Flux, gui: BillboardGui, adornee: BasePart): Controller.Self
+	gui.Adornee = adornee
+	gui.Parent = Players.LocalPlayer.PlayerGui
+	return Controller.new(gui)
 end
 
 return Flux

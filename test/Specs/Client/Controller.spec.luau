@@ -1,0 +1,155 @@
+return function()
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local Flux = require(ReplicatedStorage.Packages.Flux)
+
+	describe("Controller", function()
+		local function makeScreenGui(): ScreenGui
+			local gui = Instance.new("ScreenGui")
+			return gui
+		end
+
+		describe("Creation", function()
+			it("should create a controller from MountScreenGui", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				expect(controller).to.be.ok()
+				controller:Unmount()
+			end)
+
+			it("should parent ScreenGui to PlayerGui", function()
+				local gui = makeScreenGui()
+				local Players = game:GetService("Players")
+				local controller = Flux:MountScreenGui(gui)
+				expect(gui.Parent).to.equal(Players.LocalPlayer.PlayerGui)
+				controller:Unmount()
+			end)
+
+			it("should create a controller from MountSurfaceGui", function()
+				local gui = Instance.new("SurfaceGui")
+				local part = Instance.new("Part")
+				local controller = Flux:MountSurfaceGui(gui, part)
+				expect(controller).to.be.ok()
+				expect(gui.Adornee).to.equal(part)
+				controller:Unmount()
+				part:Destroy()
+			end)
+
+			it("should set face on SurfaceGui when provided", function()
+				local gui = Instance.new("SurfaceGui")
+				local part = Instance.new("Part")
+				local controller = Flux:MountSurfaceGui(gui, part, Enum.NormalId.Top)
+				expect(gui.Face).to.equal(Enum.NormalId.Top)
+				controller:Unmount()
+				part:Destroy()
+			end)
+
+			it("should create a controller from MountBillboardGui", function()
+				local gui = Instance.new("BillboardGui")
+				local part = Instance.new("Part")
+				local controller = Flux:MountBillboardGui(gui, part)
+				expect(controller).to.be.ok()
+				expect(gui.Adornee).to.equal(part)
+				controller:Unmount()
+				part:Destroy()
+			end)
+		end)
+
+		describe("GetInstance", function()
+			it("should return the mounted GUI instance", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				expect(controller:GetInstance()).to.equal(gui)
+				controller:Unmount()
+			end)
+		end)
+
+		describe("Unmount", function()
+			it("should destroy the GUI instance", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				controller:Unmount()
+				expect(gui.Parent).to.equal(nil)
+			end)
+
+			it("should be safe to call Unmount multiple times", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				controller:Unmount()
+				expect(function()
+					controller:Unmount()
+				end).never.to.throw()
+			end)
+		end)
+
+		describe("Bind", function()
+			it("should fire callback immediately with current state value", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				local state = Flux:State(42)
+				local received = nil
+
+				controller:Bind(state, function(value)
+					received = value
+				end)
+
+				expect(received).to.equal(42)
+				controller:Unmount()
+			end)
+
+			it("should fire callback when state changes", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				local state = Flux:State(0)
+				local received = nil
+
+				controller:Bind(state, function(value)
+					received = value
+				end)
+
+				state:Set(100)
+				expect(received).to.equal(100)
+				controller:Unmount()
+			end)
+
+			it("should disconnect bindings on Unmount", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				local state = Flux:State(0)
+				local callCount = 0
+
+				controller:Bind(state, function(_value)
+					callCount = callCount + 1
+				end)
+
+				expect(callCount).to.equal(1) -- initial
+				controller:Unmount()
+
+				state:Set(10)
+				expect(callCount).to.equal(1) -- should not have fired again
+			end)
+
+			it("should support multiple bindings", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				local stateA = Flux:State("a")
+				local stateB = Flux:State("b")
+				local receivedA = nil
+				local receivedB = nil
+
+				controller:Bind(stateA, function(value)
+					receivedA = value
+				end)
+
+				controller:Bind(stateB, function(value)
+					receivedB = value
+				end)
+
+				stateA:Set("x")
+				stateB:Set("y")
+				expect(receivedA).to.equal("x")
+				expect(receivedB).to.equal("y")
+				controller:Unmount()
+			end)
+		end)
+	end)
+end

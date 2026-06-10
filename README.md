@@ -1,0 +1,381 @@
+# Flux
+
+A simple, lightweight reactive UI framework for Roblox that makes building dynamic user interfaces easy and maintainable.
+
+## Features
+
+- 🎯 **Reactive State Management** - Create observable state that automatically updates your UI
+- 🧩 **Component System** - Build reusable UI components with automatic lifecycle management
+- 🧹 **Automatic Cleanup** - No memory leaks - all bindings are automatically cleaned up
+- 📦 **Lightweight** - Minimal dependencies and small footprint
+- 🔒 **Type-Safe** - Full Luau type annotations for better IDE support
+
+## Installation
+
+### Using Wally
+
+Add Flux to your `wally.toml`:
+
+```toml
+[dependencies]
+Flux = "zythdotdev/flux@1.0.0"
+```
+
+Then run:
+
+```bash
+wally install
+```
+
+### Manual Installation
+
+1. Download the latest release
+2. Place the `Flux` folder in your `ReplicatedStorage` or wherever you store your modules
+
+## Quick Start
+
+```lua
+local Flux = require(path.to.Flux)
+
+-- Create reactive state
+local coins: Flux.State<number> = Flux:State(0)
+
+-- Mount a ScreenGui
+local gui = ReplicatedStorage.Gui.CoinsGui:Clone()
+local controller = Flux:MountScreenGui(gui)
+
+-- Bind state to UI updates
+controller:Bind(coins, function(count: number)
+    local frame = controller:GetInstance():FindFirstChild("Frame")
+    if frame then
+        local label = frame:FindFirstChild("CoinsLabel")
+        if label and label:IsA("TextLabel") then
+            label.Text = tostring(count)
+        end
+    end
+end)
+
+-- Update state (UI updates automatically)
+coins:Set(100)
+
+-- Clean up when done
+controller:Unmount()
+```
+
+## Core Concepts
+
+### Reactive State
+
+Create reactive state with `Flux:State()`:
+
+```lua
+local health: Flux.State<number> = Flux:State(100)
+local playerName: Flux.State<string> = Flux:State("Player")
+```
+
+Update state with `:Set()`:
+
+```lua
+health:Set(75)
+playerName:Set("NewPlayer")
+```
+
+Get current value with `:Get()`:
+
+```lua
+local currentHealth = health:Get()
+```
+
+### Mounting GUIs
+
+Flux supports all three GUI types. You are responsible for cloning templates before passing them in — Flux takes ownership of the instance you provide.
+
+#### ScreenGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountScreenGui(gui)
+```
+
+#### SurfaceGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountSurfaceGui(gui, partAdornee, Enum.NormalId.Front)
+```
+
+#### BillboardGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountBillboardGui(gui, partAdornee)
+```
+
+### Binding State to UI
+
+Use `controller:Bind()` to reactively update UI elements:
+
+```lua
+controller:Bind(health, function(hp: number)
+    local healthBar = controller:GetInstance():FindFirstChild("HealthBar")
+    if healthBar and healthBar:IsA("Frame") then
+        healthBar.Size = UDim2.fromScale(hp / 100, 1)
+    end
+end)
+```
+
+The callback fires immediately with the current value and then again whenever the state changes.
+
+### Accessing GUI Elements
+
+Access GUI elements through `controller:GetInstance()`:
+
+```lua
+-- Get a direct child
+local frame = controller:GetInstance():FindFirstChild("Frame")
+
+-- Get a nested child
+if frame then
+    local container = frame:FindFirstChild("Container")
+    if container then
+        local label = container:FindFirstChild("Label")
+    end
+end
+
+-- Or use WaitForChild for elements that should always exist
+local frame = controller:GetInstance():WaitForChild("Frame")
+```
+
+Always check if instances exist before using them.
+
+### Components
+
+Create reusable components for common UI patterns:
+
+```lua
+type Props = {
+	health: Flux.State<number>,
+    maxHealth: number?
+}
+
+local function HealthBar(instance: Instance, scope: Flux.Scope, props: Props)
+    local maxHealth = props.maxHealth or 100
+    
+    scope:Bind(props.health, function(hp: number)
+        local bar: Frame = instance :: Frame
+        bar.Size = UDim2.fromScale(hp / maxHealth, 1)
+        
+        -- Color based on health
+        if hp < maxHealth * 0.3 then
+            bar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        elseif hp < maxHealth * 0.6 then
+            bar.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+        else
+            bar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        end
+    end)
+end
+
+-- Use the component
+local healthState = Flux:State(100)
+local healthBarFrame = controller:GetInstance():FindFirstChild("HealthBarFrame")
+if healthBarFrame then
+    controller:Mount(HealthBar, healthBarFrame, {
+        health = healthState,
+        maxHealth = 100
+    })
+end
+```
+
+Components receive a `Scope` that automatically cleans up bindings when the controller is unmounted.
+
+### Nested Components
+
+Components can mount other components, creating a hierarchy that automatically cleans up when the parent controller is destroyed:
+
+```lua
+-- Child component: displays a single stat
+local function StatDisplay(instance: Instance, scope: Flux.Scope, props: {
+    label: string,
+    value: Flux.State<number>
+})
+    scope:Bind(props.value, function(val: number)
+        local label = instance:FindFirstChild("Label")
+        local valueLabel = instance:FindFirstChild("Value")
+        
+        if label and label:IsA("TextLabel") then
+            label.Text = props.label
+        end
+        if valueLabel and valueLabel:IsA("TextLabel") then
+            valueLabel.Text = tostring(val)
+        end
+    end)
+end
+
+-- Parent component: mounts multiple StatDisplay components
+local function PlayerStats(instance: Instance, scope: Flux.Scope, props: {
+    health: Flux.State<number>,
+    mana: Flux.State<number>,
+    coins: Flux.State<number>
+})
+    local container = instance:FindFirstChild("Container")
+    if not container then return end
+    
+    -- Mount child components using the parent's scope
+    local healthFrame = container:FindFirstChild("HealthFrame")
+    if healthFrame then
+        scope:Mount(StatDisplay, healthFrame, {
+            label = "Health",
+            value = props.health
+        })
+    end
+    
+    local manaFrame = container:FindFirstChild("ManaFrame")
+    if manaFrame then
+        scope:Mount(StatDisplay, manaFrame, {
+            label = "Mana",
+            value = props.mana
+        })
+    end
+    
+    local coinsFrame = container:FindFirstChild("CoinsFrame")
+    if coinsFrame then
+        scope:Mount(StatDisplay, coinsFrame, {
+            label = "Coins",
+            value = props.coins
+        })
+    end
+end
+
+-- Usage: all nested components clean up when controller unmounts
+local healthState = Flux:State(100)
+local manaState = Flux:State(50)
+local coinsState = Flux:State(0)
+
+local statsPanel = controller:GetInstance():FindFirstChild("StatsPanel")
+if statsPanel then
+    controller:Mount(PlayerStats, statsPanel, {
+        health = healthState,
+        mana = manaState,
+        coins = coinsState
+    })
+end
+
+-- Later: controller:Unmount() cleans up ALL components and bindings
+```
+
+When you call `controller:Unmount()`, it automatically cleans up:
+- All bindings in `PlayerStats`
+- All three `StatDisplay` child components and their bindings
+- Any deeper nested components
+
+This cascading cleanup prevents memory leaks in complex component hierarchies.
+
+### Cleanup
+
+Always call `Unmount()` when you're done with a GUI:
+
+```lua
+controller:Unmount()
+```
+
+This destroys the GUI instance and disconnects all bindings, preventing memory leaks.
+
+## API Reference
+
+### Flux
+
+#### `Flux:State<T>(initialValue: T?) -> State<T>`
+Creates a new reactive state object.
+
+#### `Flux:MountScreenGui(gui: ScreenGui) -> Controller`
+Parents the GUI to PlayerGui and returns a controller that owns its lifecycle. Clone templates before passing them in.
+
+#### `Flux:MountSurfaceGui(gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller`
+Sets the adornee (and optionally face), parents the GUI to PlayerGui, and returns a controller. Clone templates before passing them in.
+
+#### `Flux:MountBillboardGui(gui: BillboardGui, adornee: BasePart) -> Controller`
+Sets the adornee, parents the GUI to PlayerGui, and returns a controller. Clone templates before passing them in.
+
+### State
+
+#### `:Set(value: T) -> ()`
+Updates the state value and notifies all observers.
+
+#### `:Get() -> T?`
+Returns the current state value.
+
+#### `:Observe(callback: (value: T?) -> ()) -> EventConnection`
+Subscribes to state changes. Callback fires immediately and on each change.
+
+### Controller
+
+#### `:Unmount() -> ()`
+Destroys the GUI and cleans up all bindings. Safe to call multiple times.
+
+#### `:GetInstance() -> ScreenGui | SurfaceGui | BillboardGui`
+Returns the GUI instance managed by this controller.
+
+#### `:Bind<T>(state: State<T>, callback: (value: T?) -> ()) -> ()`
+Binds a state to a callback. Automatically cleaned up on unmount.
+
+#### `:Mount(component: Component, instance: Instance, props: {[string]: any}?) -> ()`
+Applies a component function to an instance.
+
+### Scope
+
+Available inside components via the `scope` parameter.
+
+#### `:Bind<T>(state: State<T>, callback: (value: T?) -> ()) -> ()`
+Binds a state to a callback. Automatically cleaned up when component unmounts.
+
+#### `:Mount(component: Component, instance: Instance, props: {[string]: any}?) -> ()`
+Mounts a child component whose lifecycle is tied to this scope. Supports arbitrary nesting depth.
+
+## Best Practices
+
+1. **Always unmount** - Call `controller:Unmount()` when you're done with a GUI
+2. **Check for nil** - Always check if `FindFirstChild()` returns a valid instance
+3. **Use components** - Encapsulate reusable UI behavior in component functions
+4. **One state, many bindings** - Multiple UI elements can bind to the same state
+5. **Organize state** - Keep related state together in a module
+
+## Example: Coin Counter
+
+```lua
+local Flux = require(ReplicatedStorage.Flux)
+
+-- Create the coin state
+local coinState = Flux:State(0)
+
+-- Clone and mount the GUI
+local gui = ReplicatedStorage.Assets.Gui.CoinGui:Clone()
+local controller = Flux:MountScreenGui(gui)
+
+-- Bind coin state to UI updates
+controller:Bind(coinState, function(coins: number)
+    local coinFrame = controller:GetInstance():FindFirstChild("CoinFrame")
+    if coinFrame then
+        local label = coinFrame:FindFirstChild("CoinLabel")
+        if label and label:IsA("TextLabel") then
+            label.Text = tostring(coins) .. " Coins"
+        end
+    end
+end)
+
+-- Update coins from gameplay events
+local function addCoins(amount: number)
+    local current = coinState:Get() or 0
+    coinState:Set(current + amount)
+end
+
+addCoins(10)
+
+-- Cleanup when done
+controller:Unmount()
+```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Author
+
+Joe Lunn ([@zythdotdev](https://github.com/zythdotdev))
