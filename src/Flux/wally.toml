@@ -3,9 +3,9 @@ name = "zythdotdev/flux"
 description = "A simple reactive UI framework for Roblox"
 version = "1.0.0"
 license = "MIT"
-realm = "shared"
+authors = ["zythdotdev (https://zyth.dev)"]
 registry = "https://github.com/UpliftGames/wally-index"
-private = true
+realm = "shared"
 
 [dependencies]
 Bag = "zythdotdev/bag@2.0.0"
