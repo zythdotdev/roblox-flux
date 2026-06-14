@@ -7,17 +7,19 @@ local Controller = require(script.Controller)
 	@within Flux
 	@interface Scope
 	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
-	@field Mount (self, component: Component, instance: Instance, props: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
+	@field BindProperty (self, state: State<T>, instance: Instance, property: string) -> () -- Binds a `State` directly to a named property on an instance
+	@field Mount (self, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
 
-	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state
-	and `Mount` to compose child components. All bindings and child mounts made through this scope are
-	automatically cleaned up when the parent GUI is unmounted.
+	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state,
+	`BindProperty` to drive a named instance property directly from state, and `Mount` to compose child
+	components. All bindings and child mounts made through this scope are automatically cleaned up when
+	the parent GUI is unmounted.
 ]=]
 export type Scope = Controller.Scope
 
 --[=[
 	@within Flux
-	@type Component (instance: Instance, scope: Scope, props: {[string]: any}?) -> ()
+	@type Component (instance: Instance, scope: Scope, properties: {[string]: any}?) -> ()
 
 	A reusable function that applies behavior to a GUI child `Instance`. Components are mounted to a specific
 	`Instance` in the GUI hierarchy and can bind to reactive state using the provided `Scope`. Components
@@ -25,7 +27,7 @@ export type Scope = Controller.Scope
 	you mount to any Frame to turn it into a health bar, or a "Draggable" component that makes any GUI element
 	draggable. Components should not manage the lifecycle of their own `Instance` (i.e. by destroying it or
 	reparenting it), they should only be responsible for updating the instance's properties in response to state changes,
-	passed down through `props` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.
+	passed down through `properties` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.
 ]=]
 export type Component = Controller.Component
 

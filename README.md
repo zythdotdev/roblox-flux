@@ -87,6 +87,30 @@ Get current value with `:Get()`:
 local currentHealth = health:Get()
 ```
 
+### Computed State
+
+Use `Flux:Computed()` when a value should update automatically from one or more existing states:
+
+```lua
+local health = Flux:State(100)
+local maxHealth = Flux:State(100)
+
+local healthPercent = Flux:Computed(function(currentHealth, max)
+    return currentHealth / max
+end, { health, maxHealth })
+
+controller:Bind(healthPercent, function(percent)
+    local bar = controller:GetInstance():FindFirstChild("HealthBar")
+    if bar and bar:IsA("Frame") then
+        bar.Size = UDim2.fromScale(percent, 1)
+    end
+end)
+
+health:Set(75)
+```
+
+The callback receives the current dependency values in the same order they are passed to the `dependencies` table, and the result behaves like any other reactive state value.
+
 ### Mounting GUIs
 
 Flux supports all three GUI types. You are responsible for cloning templates before passing them in — Flux takes ownership of the instance you provide.
@@ -124,6 +148,18 @@ end)
 
 The callback fires immediately with the current value and then again whenever the state changes.
 
+For common cases where a state value maps directly to a single instance property, use `BindProperty` as a shorthand:
+
+```lua
+local label = controller:GetInstance():FindFirstChild("CoinsLabel") :: TextLabel
+local frame = controller:GetInstance():FindFirstChild("HealthBar") :: Frame
+
+controller:BindProperty(coins, label, "Text")
+controller:BindProperty(visible, frame, "Visible")
+```
+
+`BindProperty` works the same way inside components via `scope:BindProperty`. Use `Bind` with a callback when you need to transform the value or update multiple properties at once.
+
 ### Accessing GUI Elements
 
 Access GUI elements through `controller:GetInstance()`:
@@ -151,15 +187,15 @@ Always check if instances exist before using them.
 Create reusable components for common UI patterns:
 
 ```lua
-type Props = {
+type Properties = {
 	health: Flux.State<number>,
     maxHealth: number?
 }
 
-local function HealthBar(instance: Instance, scope: Flux.Scope, props: Props)
-    local maxHealth = props.maxHealth or 100
+local function HealthBar(instance: Instance, scope: Flux.Scope, properties: Properties)
+    local maxHealth = properties.maxHealth or 100
     
-    scope:Bind(props.health, function(hp: number)
+    scope:Bind(properties.health, function(hp: number)
         local bar: Frame = instance :: Frame
         bar.Size = UDim2.fromScale(hp / maxHealth, 1)
         
@@ -193,16 +229,16 @@ Components can mount other components, creating a hierarchy that automatically c
 
 ```lua
 -- Child component: displays a single stat
-local function StatDisplay(instance: Instance, scope: Flux.Scope, props: {
+local function StatDisplay(instance: Instance, scope: Flux.Scope, properties: {
     label: string,
     value: Flux.State<number>
 })
-    scope:Bind(props.value, function(val: number)
+    scope:Bind(properties.value, function(val: number)
         local label = instance:FindFirstChild("Label")
         local valueLabel = instance:FindFirstChild("Value")
         
         if label and label:IsA("TextLabel") then
-            label.Text = props.label
+            label.Text = properties.label
         end
         if valueLabel and valueLabel:IsA("TextLabel") then
             valueLabel.Text = tostring(val)
@@ -211,7 +247,7 @@ local function StatDisplay(instance: Instance, scope: Flux.Scope, props: {
 end
 
 -- Parent component: mounts multiple StatDisplay components
-local function PlayerStats(instance: Instance, scope: Flux.Scope, props: {
+local function PlayerStats(instance: Instance, scope: Flux.Scope, properties: {
     health: Flux.State<number>,
     mana: Flux.State<number>,
     coins: Flux.State<number>
@@ -224,7 +260,7 @@ local function PlayerStats(instance: Instance, scope: Flux.Scope, props: {
     if healthFrame then
         scope:Mount(StatDisplay, healthFrame, {
             label = "Health",
-            value = props.health
+            value = properties.health
         })
     end
     
@@ -232,7 +268,7 @@ local function PlayerStats(instance: Instance, scope: Flux.Scope, props: {
     if manaFrame then
         scope:Mount(StatDisplay, manaFrame, {
             label = "Mana",
-            value = props.mana
+            value = properties.mana
         })
     end
     
@@ -240,7 +276,7 @@ local function PlayerStats(instance: Instance, scope: Flux.Scope, props: {
     if coinsFrame then
         scope:Mount(StatDisplay, coinsFrame, {
             label = "Coins",
-            value = props.coins
+            value = properties.coins
         })
     end
 end
@@ -321,54 +357,3 @@ addCoins(10)
 -- Cleanup when done
 controller:Unmount()
 ```
-
-## API Overview
-
-### Flux
-
-#### `Flux:State<T>(initialValue: T?) -> State<T>`
-Creates a new reactive state object.
-
-#### `Flux:MountScreenGui(gui: ScreenGui) -> Controller`
-Parents the GUI to PlayerGui and returns a controller that owns its lifecycle. Clone templates before passing them in.
-
-#### `Flux:MountSurfaceGui(gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller`
-Sets the adornee (and optionally face), parents the GUI to PlayerGui, and returns a controller. Clone templates before passing them in.
-
-#### `Flux:MountBillboardGui(gui: BillboardGui, adornee: BasePart) -> Controller`
-Sets the adornee, parents the GUI to PlayerGui, and returns a controller. Clone templates before passing them in.
-
-### State
-
-#### `:Set(value: T) -> ()`
-Updates the state value and notifies all observers.
-
-#### `:Get() -> T?`
-Returns the current state value.
-
-#### `:Observe(callback: (value: T?) -> ()) -> EventConnection`
-Subscribes to state changes. Callback fires immediately and on each change.
-
-### Controller
-
-#### `:Unmount() -> ()`
-Destroys the GUI and cleans up all bindings. Safe to call multiple times.
-
-#### `:GetInstance() -> ScreenGui | SurfaceGui | BillboardGui`
-Returns the GUI instance managed by this controller.
-
-#### `:Bind<T>(state: State<T>, callback: (value: T?) -> ()) -> ()`
-Binds a state to a callback. Automatically cleaned up on unmount.
-
-#### `:Mount(component: Component, instance: Instance, props: {[string]: any}?) -> ()`
-Applies a component function to an instance.
-
-### Scope
-
-Available inside components via the `scope` parameter.
-
-#### `:Bind<T>(state: State<T>, callback: (value: T?) -> ()) -> ()`
-Binds a state to a callback. Automatically cleaned up when component unmounts.
-
-#### `:Mount(component: Component, instance: Instance, props: {[string]: any}?) -> ()`
-Mounts a child component whose lifecycle is tied to this scope. Supports arbitrary nesting depth.

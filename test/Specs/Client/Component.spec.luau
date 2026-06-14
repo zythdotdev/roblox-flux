@@ -26,43 +26,43 @@ return function()
 				controller:Unmount()
 			end)
 
-			it("should pass props to the component", function()
+			it("should pass properties to the component", function()
 				local gui = makeScreenGui()
 				local controller = Flux:MountScreenGui(gui)
 
 				local frame = Instance.new("Frame")
 				frame.Parent = gui
 
-				local receivedProps = nil
-				local function TestComponent(_instance: Instance, _scope: Flux.Scope, props: {[string]: any}?)
-					receivedProps = props
+				local receivedProperties = nil
+				local function TestComponent(_instance: Instance, _scope: Flux.Scope, properties: {[string]: any}?)
+					receivedProperties = properties
 				end
 
-				local props = { color = "red", size = 10 }
-				controller:Mount(TestComponent, frame, props)
-				expect(receivedProps).to.be.ok()
-				expect(receivedProps.color).to.equal("red")
-				expect(receivedProps.size).to.equal(10)
+				local properties = { color = "red", size = 10 }
+				controller:Mount(TestComponent, frame, properties)
+				expect(receivedProperties).to.be.ok()
+				expect(receivedProperties.color).to.equal("red")
+				expect(receivedProperties.size).to.equal(10)
 				controller:Unmount()
 			end)
 
-			it("should pass nil props when not provided", function()
+			it("should pass nil properties when not provided", function()
 				local gui = makeScreenGui()
 				local controller = Flux:MountScreenGui(gui)
 
 				local frame = Instance.new("Frame")
 				frame.Parent = gui
 
-				local propsCalled = false
-				local receivedProps = "sentinel"
-				local function TestComponent(_instance: Instance, _scope: Flux.Scope, props: {[string]: any}?)
-					propsCalled = true
-					receivedProps = props
+				local propertiesCalled = false
+				local receivedProperties = "sentinel"
+				local function TestComponent(_instance: Instance, _scope: Flux.Scope, properties: {[string]: any}?)
+					propertiesCalled = true
+					receivedProperties = properties
 				end
 
 				controller:Mount(TestComponent, frame)
-				expect(propsCalled).to.equal(true)
-				expect(receivedProps).to.equal(nil)
+				expect(propertiesCalled).to.equal(true)
+				expect(receivedProperties).to.equal(nil)
 				controller:Unmount()
 			end)
 		end)
@@ -177,7 +177,7 @@ return function()
 				expect(childCallCount).to.equal(2) -- should not fire
 			end)
 
-			it("should pass props to child components", function()
+			it("should pass properties to child components", function()
 				local gui = makeScreenGui()
 				local controller = Flux:MountScreenGui(gui)
 
@@ -186,9 +186,9 @@ return function()
 				local label = Instance.new("TextLabel")
 				label.Parent = frame
 
-				local receivedChildProps = nil
-				local function ChildComponent(_instance: Instance, _scope: Flux.Scope, props: {[string]: any}?)
-					receivedChildProps = props
+				local receivedChildProperties = nil
+				local function ChildComponent(_instance: Instance, _scope: Flux.Scope, properties: {[string]: any}?)
+					receivedChildProperties = properties
 				end
 
 				local function ParentComponent(instance: Instance, scope: Flux.Scope)
@@ -197,9 +197,70 @@ return function()
 				end
 
 				controller:Mount(ParentComponent, frame)
-				expect(receivedChildProps).to.be.ok()
-				expect(receivedChildProps.text).to.equal("hello")
+				expect(receivedChildProperties).to.be.ok()
+				expect(receivedChildProperties.text).to.equal("hello")
 				controller:Unmount()
+			end)
+		end)
+
+		describe("Scope:BindProperty", function()
+			it("should set the property immediately with the current state value", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = ""
+				label.Parent = gui
+
+				local textState = Flux:State("hello")
+
+				local function TestComponent(instance: Instance, scope: Flux.Scope)
+					scope:BindProperty(textState, instance, "Text")
+				end
+
+				controller:Mount(TestComponent, label)
+				expect(label.Text).to.equal("hello")
+				controller:Unmount()
+			end)
+
+			it("should update the property when state changes", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = ""
+				label.Parent = gui
+
+				local textState = Flux:State("initial")
+
+				local function TestComponent(instance: Instance, scope: Flux.Scope)
+					scope:BindProperty(textState, instance, "Text")
+				end
+
+				controller:Mount(TestComponent, label)
+				textState:Set("updated")
+				expect(label.Text).to.equal("updated")
+				controller:Unmount()
+			end)
+
+			it("should stop updating the property after Unmount", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = "initial"
+				label.Parent = gui
+
+				local textState = Flux:State("initial")
+
+				local function TestComponent(instance: Instance, scope: Flux.Scope)
+					scope:BindProperty(textState, instance, "Text")
+				end
+
+				controller:Mount(TestComponent, label)
+				controller:Unmount()
+				textState:Set("after unmount")
+				expect(label.Text).to.equal("initial")
 			end)
 		end)
 

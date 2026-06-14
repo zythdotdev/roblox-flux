@@ -5,7 +5,7 @@ local Value = require(script.Parent.Packages.Value)
 	@within Controller
 	@interface Scope
 	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
-	@field Mount (self, component: Component, instance: Instance, props: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
+	@field Mount (self, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
 
 	A lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state and `Mount`
 	to compose child components. All bindings and child mounts made through this scope are automatically cleaned
@@ -13,12 +13,13 @@ local Value = require(script.Parent.Packages.Value)
 ]=]
 export type Scope = {
 	Bind: <T>(self: Scope, state: State<T>, callback: (newValue: T?) -> ()) -> (),
-	Mount: (self: Scope, component: Component, instance: Instance, props: {[string]: any}?) -> (),
+	BindProperty: <T>(self: Scope, state: State<T>, instance: Instance, property: string) -> (),
+	Mount: (self: Scope, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 }
 
 --[=[
 	@within Controller
-	@type Component (instance: Instance, scope: Scope, props: {[string]: any}?) -> ()
+	@type Component (instance: Instance, scope: Scope, properties: {[string]: any}?) -> ()
 
 	A reusable function that applies behavior to a GUI child `Instance`. Components are mounted to a specific
 	`Instance` in the GUI hierarchy and can bind to reactive state using the provided `Scope`. Components
@@ -26,9 +27,9 @@ export type Scope = {
 	you mount to any Frame to turn it into a health bar, or a "Draggable" component that makes a GUI element
 	draggable. Components should not manage the lifecycle of their own `Instance` (i.e. by destroying it or
 	reparenting it), they should only be responsible for updating the instance's properties in response to state changes,
-	passed down through `props` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.
+	passed down through `properties` or observed via `Bind`. Let the parent `Controller` manage the lifecycle of all instances.
 ]=]
-export type Component = (instance: Instance, scope: Scope, props: {[string]: any}?) -> ()
+export type Component = (instance: Instance, scope: Scope, properties: {[string]: any}?) -> ()
 
 --[=[
 	@within Controller
@@ -44,9 +45,10 @@ type Controller = {
 	_Bag: Bag.Self,
 
 	Unmount: (self: Self) -> (),
-	GetInstance: (self: Self) -> ScreenGui | SurfaceGui | BillboardGui,
-	Mount: (self: Self, component: Component, instance: Instance, props: {[string]: any}?) -> (),
+	Mount: (self: Self, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 	Bind: <T>(self: Self, state: State<T>, callback: (newValue: T?) -> ()) -> (),
+	BindProperty: <T>(self: Self, state: State<T>, instance: Instance, property: string) -> (),
+	GetInstance: (self: Self) -> ScreenGui | SurfaceGui | BillboardGui,
 }
 
 --[=[
@@ -54,6 +56,29 @@ type Controller = {
 	@type Self Controller
 ]=]
 export type Self = Controller
+
+local function createScope(parentBag: Bag.Self): Scope
+	local scope = {}
+
+	function scope:Bind<T>(state: State<T>, callback: (newValue: T?) -> ())
+		local connection = state:Observe(callback)
+		parentBag:Add(connection)
+	end
+
+	function scope:BindProperty<T>(state: State<T>, instance: Instance, property: string)
+		scope:Bind(state, function(value: T)
+			(instance :: any)[property] = value
+		end)
+	end
+
+	function scope:Mount(component: Component, instance: Instance, properties: {[string]: any}?)
+		local childBag = Bag.new()
+		parentBag:Add(childBag)
+		component(instance, createScope(childBag), properties)
+	end
+
+	return scope :: any
+end
 
 --[=[
 	@class Controller
@@ -65,23 +90,6 @@ export type Self = Controller
 ]=]
 local Controller = {}
 Controller.__index = Controller
-
-local function createScope(parentBag: Bag.Self): Scope
-	local scope = {}
-
-	function scope:Bind<U>(state: State<U>, callback: (newValue: U?) -> ())
-		local connection = state:Observe(callback)
-		parentBag:Add(connection)
-	end
-
-	function scope:Mount(component: Component, instance: Instance, props: {[string]: any}?)
-		local childBag = Bag.new()
-		parentBag:Add(childBag)
-		component(instance, createScope(childBag), props)
-	end
-
-	return scope :: any
-end
 
 --[=[
 	@param gui ScreenGui | SurfaceGui | BillboardGui -- The GUI instance to manage
@@ -114,31 +122,17 @@ function Controller.Unmount(self: Self)
 end
 
 --[=[
-	@return ScreenGui | SurfaceGui | BillboardGui -- The managed GUI instance
-
-	Returns the GUI instance managed by this controller.
-
-	```lua
-	local gui = controller:GetInstance()
-	local frame = gui:FindFirstChild("Frame")
-	```
-]=]
-function Controller.GetInstance(self: Self): ScreenGui | SurfaceGui | BillboardGui
-	return self._Instance
-end
-
---[=[
 	Applies a reusable `Component` function to a child instance. The component receives a `Scope`
 	that allows it to bind to reactive state. All bindings made by the component are automatically
 	cleaned up when the controller is unmounted.
 
 	@param component Component -- The component function to apply
 	@param instance Instance -- The GUI instance to pass to the component
-	@param props {[string]: any}? -- Optional props table to pass to the component
+	@param properties {[string]: any}? -- Optional properties table to pass to the component
 
 	```lua
-	local function HealthBar(instance: Instance, scope: Flux.Scope, props: {health: Flux.State<number>})
-		scope:Bind(props.health, function(hp: number)
+	local function HealthBar(instance: Instance, scope: Flux.Scope, properties: {health: Flux.State<number>})
+		scope:Bind(properties.health, function(hp: number)
 			local bar: Frame = instance :: Frame
 			bar.Size = UDim2.fromScale(hp / 100, 1)
 		end)
@@ -151,11 +145,11 @@ end
 	end
 	```
 ]=]
-function Controller.Mount(self: Self, component: Component, instance: Instance, props: {[string]: any}?)
+function Controller.Mount(self: Self, component: Component, instance: Instance, properties: {[string]: any}?)
 	if self._Bag._Destroyed then return end
 	local componentBag = Bag.new()
 	self._Bag:Add(componentBag)
-	component(instance, createScope(componentBag), props)
+	component(instance, createScope(componentBag), properties)
 end
 
 --[=[
@@ -180,6 +174,41 @@ function Controller.Bind<T>(self: Self, state: State<T>, callback: (newValue: T?
 	if self._Bag._Destroyed then return end
 	local connection = state:Observe(callback)
 	self._Bag:Add(connection)
+end
+
+--[=[
+	@param state State<T> -- The reactive state to observe
+	@param instance Instance -- The GUI instance whose property will be updated
+	@param property string -- The name of the property to set
+
+	Binds a `State` object to a named property on a GUI instance. The property is set immediately
+	to the current state value, and updated whenever the state changes. The binding is automatically
+	cleaned up when the controller is unmounted.
+
+	```lua
+	local size = Flux:State(UDim2.fromScale(1, 1))
+	local frame = controller:GetInstance():FindFirstChild("Frame") :: Frame
+	controller:BindProperty(size, frame, "Size")
+	```
+]=]
+function Controller.BindProperty<T>(self: Self, state: State<T>, instance: Instance, property: string)
+	Controller.Bind(self, state, function(value: T)
+		(instance :: any)[property] = value
+	end)
+end
+
+--[=[
+	@return ScreenGui | SurfaceGui | BillboardGui -- The managed GUI instance
+
+	Returns the GUI instance managed by this controller.
+
+	```lua
+	local gui = controller:GetInstance()
+	local frame = gui:FindFirstChild("Frame")
+	```
+]=]
+function Controller.GetInstance(self: Self): ScreenGui | SurfaceGui | BillboardGui
+	return self._Instance
 end
 
 return Controller

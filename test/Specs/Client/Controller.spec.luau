@@ -81,6 +81,55 @@ return function()
 			end)
 		end)
 
+		describe("BindProperty", function()
+			it("should set the property immediately with the current state value", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = ""
+				label.Parent = gui
+
+				local textState = Flux:State("hello")
+				controller:BindProperty(textState, label, "Text")
+
+				expect(label.Text).to.equal("hello")
+				controller:Unmount()
+			end)
+
+			it("should update the property when state changes", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = ""
+				label.Parent = gui
+
+				local textState = Flux:State("initial")
+				controller:BindProperty(textState, label, "Text")
+
+				textState:Set("updated")
+				expect(label.Text).to.equal("updated")
+				controller:Unmount()
+			end)
+
+			it("should disconnect property binding on Unmount", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local label = Instance.new("TextLabel")
+				label.Text = "initial"
+				label.Parent = gui
+
+				local textState = Flux:State("initial")
+				controller:BindProperty(textState, label, "Text")
+
+				controller:Unmount()
+				textState:Set("after unmount")
+				expect(label.Text).to.equal("initial")
+			end)
+		end)
+
 		describe("Bind", function()
 			it("should fire callback immediately with current state value", function()
 				local gui = makeScreenGui()
