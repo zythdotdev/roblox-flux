@@ -10,7 +10,7 @@ type AnimatedState<T> = {
 }
 
 local function lerp(a: any, b: any, alpha: number): any
-	if type(a) == "number" then
+	if typeof(a) == "number" then
 		return a + (b - a) * alpha
 	else
 		return a:Lerp(b, alpha)
@@ -18,6 +18,10 @@ local function lerp(a: any, b: any, alpha: number): any
 end
 
 local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedState<T>
+	if tweenInfo.RepeatCount ~= 0 or tweenInfo.Reverses or tweenInfo.DelayTime ~= 0 then
+		warn("Flux.Tween: TweenInfo RepeatCount, Reverses, and DelayTime are not supported and will be ignored")
+	end
+
 	local animated = Value.new(source:Get())
 	local heartbeatConn: RBXScriptConnection? = nil
 	local started = false
@@ -52,6 +56,11 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 		local duration = tweenInfo.Time
 		local style = tweenInfo.EasingStyle
 		local direction = tweenInfo.EasingDirection
+
+		if duration <= 0 then
+			animated:Set(target)
+			return
+		end
 
 		heartbeatConn = RunService.Heartbeat:Connect(function(dt: number)
 			elapsed += dt

@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local Value = require(script.Parent.Packages.Value)
 
 local SETTLE_THRESHOLD = 1e-3
+local MAX_DT = 1 / 30
 
 type AnimatedState<T> = {
 	Get: (self: AnimatedState<T>) -> T?,
@@ -40,6 +41,7 @@ local function recompose(typeName: string, c: Components): any
 	elseif typeName == "UDim2" then
 		return UDim2.new(c[1], c[2], c[3], c[4])
 	end
+	error("Spring: unsupported type '" .. typeName .. "'", 2)
 end
 
 local function Spring<T>(source: Value.Self<T>, speed: number, damping: number): AnimatedState<T>
@@ -54,6 +56,10 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 	local started = false
 	local heartbeatConn: RBXScriptConnection? = nil
 
+	-- Hoist constants — speed and damping are fixed at construction time
+	local twoZetaOmega = 2 * damping * speed
+	local omegaSq = speed * speed
+
 	local function cancelHeartbeat()
 		if heartbeatConn then
 			heartbeatConn:Disconnect()
@@ -62,9 +68,10 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 	end
 
 	local function step(dt: number)
+		-- Clamp dt so a frame spike cannot push the integrator past its stability limit
+		dt = math.min(dt, MAX_DT)
+
 		local allSettled = true
-		local twoZetaOmega = 2 * damping * speed
-		local omegaSq = speed * speed
 
 		for i = 1, #position do
 			local accel = (target[i] - position[i]) * omegaSq - velocity[i] * twoZetaOmega
@@ -75,26 +82,26 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 			end
 		end
 
-		animated:Set(recompose(typeName, position))
-
 		if allSettled then
 			for i = 1, #position do
 				position[i] = target[i]
 				velocity[i] = 0
 			end
-			animated:Set(recompose(typeName, position))
 			cancelHeartbeat()
 			settled = true
 		end
+
+		animated:Set(recompose(typeName, position))
 	end
 
-	local sourceConn = source:Observe(function(newTarget: T?)
+	local connection = source:Observe(function(newTarget: T?)
 		if not started then
 			started = true
 			return
 		end
 
 		if newTarget == nil then
+			cancelHeartbeat()
 			animated:Set(nil)
 			return
 		end
@@ -119,7 +126,7 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 		end,
 		Destroy = function(_self: AnimatedState<T>)
 			cancelHeartbeat()
-			sourceConn:Disconnect()
+			connection:Disconnect()
 			animated:Destroy()
 		end,
 	}

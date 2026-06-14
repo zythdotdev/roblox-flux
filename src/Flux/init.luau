@@ -47,8 +47,8 @@ export type State<T> = Value.Self<T>
 	@interface AnimatedState
 
 	A read-only animated state returned by `Flux:Tween` and `Flux:Spring`. Supports `Get`, `Observe`,
-	and `Destroy` — compatible with `Bind`, `BindProperty`, and `Bag:Add` without any changes to those.
-	Call `Destroy` when you are finished with it to stop the animation and free resources.
+	and `Destroy` — compatible with `Bind` and `BindProperty`. Call `Destroy` when you are finished
+	with it to stop the animation and free resources.
 ]=]
 export type AnimatedState<T> = {
 	Get: (self: AnimatedState<T>) -> T?,
