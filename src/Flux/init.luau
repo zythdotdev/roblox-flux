@@ -40,6 +40,7 @@ export type State<T> = Value.Self<T>
 
 type Flux = {
 	State: <T>(self: Flux, initialValue: T?) -> State<T>,
+	Computed: <T>(self: Flux, callback: (...any) -> T, dependencies: {State<any>}?) -> State<T>,
 	MountScreenGui: (self: Flux, gui: ScreenGui) -> Controller.Self,
 	MountSurfaceGui: (self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller.Self,
 	MountBillboardGui: (self: Flux, gui: BillboardGui, adornee: BasePart) -> Controller.Self,
@@ -101,6 +102,21 @@ local Flux = {}
 ]=]
 function Flux.State<T>(_self: Flux, initialValue: T?): State<T>
 	return Value.new(initialValue)
+end
+
+--[=[
+	@param callback () -> T -- A function that derives the computed value from current dependencies
+	@param dependencies {State<any>}? -- Optional list of states to observe; if omitted, the callback is evaluated once
+	@return State<T>
+
+	Creates a reactive derived state value. The callback runs immediately to seed the value,
+	then re-runs whenever any dependency changes. The returned state is read-only from the
+	caller perspective and is cleaned up automatically when its dependencies are destroyed.
+]=]
+function Flux.Computed<T>(_self: Flux, callback: (...any) -> T, dependencies: {State<any>}?): State<T>
+	return Value.computed(function(...: any)
+		return callback(...)
+	end, dependencies)
 end
 
 --[=[

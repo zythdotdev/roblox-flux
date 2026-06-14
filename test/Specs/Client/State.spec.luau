@@ -116,6 +116,49 @@ return function()
 			expect(state:Get()).to.equal(true)
 		end)
 
+		it("should create a computed state from dependencies", function()
+			local count = Flux:State(4)
+			local doubled = Flux:Computed(function(value)
+				return value * 2
+			end, { count })
+
+			expect(doubled:Get()).to.equal(8)
+
+			count:Set(7)
+			expect(doubled:Get()).to.equal(14)
+		end)
+
+		it("should pass dependency values into the callback", function()
+			local base = Flux:State(3)
+			local multiplier = Flux:State(5)
+			local total = Flux:Computed(function(value, factor)
+				return value * factor
+			end, { base, multiplier })
+
+			expect(total:Get()).to.equal(15)
+
+			base:Set(4)
+			expect(total:Get()).to.equal(20)
+		end)
+
+		it("should clean up computed observers when destroyed", function()
+			local count = Flux:State(1)
+			local doubled = Flux:Computed(function()
+				return count:Get() * 2
+			end, { count })
+			local callCount = 0
+
+			doubled:Observe(function(_value)
+				callCount = callCount + 1
+			end)
+
+			expect(callCount).to.equal(1)
+			doubled:Destroy()
+			count:Set(9)
+
+			expect(callCount).to.equal(1)
+		end)
+
 		it("should return a working Setter function", function()
 			local state = Flux:State(0)
 			local setter = state:Setter()
