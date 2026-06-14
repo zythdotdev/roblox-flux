@@ -160,6 +160,49 @@ controller:BindProperty(visible, frame, "Visible")
 
 `BindProperty` works the same way inside components via `scope:BindProperty`. Use `Bind` with a callback when you need to transform the value or update multiple properties at once.
 
+### Animation
+
+Use `Flux:Tween` or `Flux:Spring` to get an animated state that smoothly follows a source state. Both return an `AnimatedState` that works transparently with `BindProperty`, `Bind`, and `Bag:Add`. Call `Destroy` on it when you're done.
+
+#### Tween
+
+Interpolates toward the source value using `TweenInfo` for timing and easing. Supports `number` and any Roblox type with a `:Lerp` method (UDim2, Vector2, Vector3, Color3, CFrame, UDim).
+
+```lua
+local health = Flux:State(100)
+local animHealth = Flux:Tween(health, TweenInfo.new(0.4, Enum.EasingStyle.Quad))
+
+local bar = controller:GetInstance():FindFirstChild("HealthBar") :: Frame
+controller:BindProperty(animHealth, bar, "Size")
+
+health:Set(50) -- bar smoothly shrinks over 0.4s
+
+-- Clean up when done
+animHealth:Destroy()
+controller:Unmount()
+```
+
+#### Spring
+
+Drives the value with spring physics — naturally overshoots when underdamped, settles cleanly when critically damped. Supports `number`, Vector2, Vector3, Color3, and UDim2. The internal `Heartbeat` connection is only active while the spring is moving.
+
+```lua
+local open = Flux:State(UDim2.fromScale(0, 0))
+-- speed = 20 (snappy), damping = 1 (critically damped, no overshoot)
+local animOpen = Flux:Spring(open, 20, 1)
+
+local panel = controller:GetInstance():FindFirstChild("Panel") :: Frame
+controller:BindProperty(animOpen, panel, "Size")
+
+open:Set(UDim2.fromScale(1, 1)) -- panel springs open
+
+-- Clean up when done
+animOpen:Destroy()
+controller:Unmount()
+```
+
+Typical damping values: `1.0` = critically damped (no overshoot), `0.7` = slightly bouncy, `0.5` = noticeably springy.
+
 ### Accessing GUI Elements
 
 Access GUI elements through `controller:GetInstance()`:

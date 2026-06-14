@@ -6,4 +6,6 @@ TestEZ.TestBootstrap:run({
 	ReplicatedStorage.Tests.Client["State.spec"],
 	ReplicatedStorage.Tests.Client["Controller.spec"],
 	ReplicatedStorage.Tests.Client["Component.spec"],
+	ReplicatedStorage.Tests.Client["Tween.spec"],
+	ReplicatedStorage.Tests.Client["Spring.spec"],
 })

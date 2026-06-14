@@ -2,6 +2,8 @@ local Players = game:GetService("Players")
 
 local Value = require(script.Packages.Value)
 local Controller = require(script.Controller)
+local Tween = require(script.Tween)
+local Spring = require(script.Spring)
 
 --[=[
 	@within Flux
@@ -40,9 +42,25 @@ export type Component = Controller.Component
 ]=]
 export type State<T> = Value.Self<T>
 
+--[=[
+	@within Flux
+	@interface AnimatedState
+
+	A read-only animated state returned by `Flux:Tween` and `Flux:Spring`. Supports `Get`, `Observe`,
+	and `Destroy` — compatible with `Bind`, `BindProperty`, and `Bag:Add` without any changes to those.
+	Call `Destroy` when you are finished with it to stop the animation and free resources.
+]=]
+export type AnimatedState<T> = {
+	Get: (self: AnimatedState<T>) -> T?,
+	Observe: (self: AnimatedState<T>, callback: (T?) -> ()) -> Value.EventConnection,
+	Destroy: (self: AnimatedState<T>) -> (),
+}
+
 type Flux = {
 	State: <T>(self: Flux, initialValue: T?) -> State<T>,
 	Computed: <T>(self: Flux, callback: (...any) -> T, dependencies: {State<any>}?) -> State<T>,
+	Tween: <T>(self: Flux, source: State<T>, tweenInfo: TweenInfo) -> AnimatedState<T>,
+	Spring: <T>(self: Flux, source: State<T>, speed: number, damping: number) -> AnimatedState<T>,
 	MountScreenGui: (self: Flux, gui: ScreenGui) -> Controller.Self,
 	MountSurfaceGui: (self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller.Self,
 	MountBillboardGui: (self: Flux, gui: BillboardGui, adornee: BasePart) -> Controller.Self,
@@ -119,6 +137,47 @@ function Flux.Computed<T>(_self: Flux, callback: (...any) -> T, dependencies: {S
 	return Value.computed(function(...: any)
 		return callback(...)
 	end, dependencies)
+end
+
+--[=[
+	@param source State<T> -- The reactive state to animate
+	@param tweenInfo TweenInfo -- Controls duration, easing style, and easing direction
+	@return AnimatedState<T>
+
+	Returns an `AnimatedState` that smoothly interpolates toward `source` whenever it changes,
+	using `TweenInfo` for timing and easing. Supports `number` and any Roblox type with a `:Lerp`
+	method (UDim2, Vector2, Vector3, Color3, CFrame, UDim). Call `Destroy` when finished.
+
+	```lua
+	local health = Flux:State(100)
+	local animHealth = Flux:Tween(health, TweenInfo.new(0.4, Enum.EasingStyle.Quad))
+	scope:BindProperty(animHealth, bar, "Size")
+	health:Set(50)
+	```
+]=]
+function Flux.Tween<T>(_self: Flux, source: State<T>, tweenInfo: TweenInfo): AnimatedState<T>
+	return Tween(source, tweenInfo)
+end
+
+--[=[
+	@param source State<T> -- The reactive state to animate
+	@param speed number -- Angular frequency — how quickly the spring responds (e.g. 15–25 for snappy UI)
+	@param damping number -- Damping ratio — 1 is critically damped (no overshoot), < 1 is bouncy
+	@return AnimatedState<T>
+
+	Returns an `AnimatedState` driven by spring physics that follows `source` whenever it changes.
+	Supports `number`, Vector2, Vector3, Color3, and UDim2. The Heartbeat connection is only active
+	while the spring is moving and disconnects automatically when settled. Call `Destroy` when finished.
+
+	```lua
+	local open = Flux:State(UDim2.fromScale(0, 0))
+	local animOpen = Flux:Spring(open, 20, 1)
+	scope:BindProperty(animOpen, panel, "Size")
+	open:Set(UDim2.fromScale(1, 1))
+	```
+]=]
+function Flux.Spring<T>(_self: Flux, source: State<T>, speed: number, damping: number): AnimatedState<T>
+	return Spring(source, speed, damping)
 end
 
 --[=[
