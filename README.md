@@ -6,6 +6,7 @@ A simple, lightweight reactive UI framework for Roblox that makes building dynam
 
 - 🔄 **Reactive State Management** - Create observable state that automatically updates your UI
 - 🧩 **Component System** - Build reusable UI components with automatic lifecycle management
+- 🧱 **Component Composition** - Combine behaviors with `Flux:Compose(...)`
 - 🎬 **Smooth Animations** - Tween and Spring animations that follow reactive state with automatic cleanup
 - 🧹 **Automatic Cleanup** - No memory leaks - all bindings are automatically cleaned up
 - 📦 **Lightweight** - Minimal dependencies and small footprint
@@ -20,7 +21,7 @@ Add Flux to your `wally.toml`:
 
 ```toml
 [dependencies]
-Flux = "zythdotdev/flux@1.0.0"
+Flux = "zythdotdev/flux@1.1.0"
 ```
 
 Then run:
@@ -40,7 +41,7 @@ wally install
 local Flux = require(path.to.Flux)
 
 -- Create reactive state
-local coins: Flux.State<number> = Flux:State(0)
+local coins = Flux:State(0)
 
 -- Mount a ScreenGui
 local gui = ReplicatedStorage.Gui.CoinsGui:Clone()
@@ -61,7 +62,8 @@ end)
 coins:Set(100)
 
 -- Clean up when done
-controller:Unmount()
+controller:Unmount() -- or Destroy
+coins:Destroy()
 ```
 
 ## Core Concepts
@@ -114,7 +116,7 @@ The callback receives the current dependency values in the same order they are p
 
 ### Mounting GUIs
 
-Flux supports all three GUI types. You are responsible for cloning templates before passing them in — Flux takes ownership of the instance you provide.
+Flux supports all three GUI types. You are responsible for cloning templates before passing them in, allowing you to build UI in Roblox Studio — Flux takes ownership of the instance you provide.
 
 #### ScreenGui
 ```lua
@@ -161,9 +163,40 @@ controller:BindProperty(visible, frame, "Visible")
 
 `BindProperty` works the same way inside components via `scope:BindProperty`. Use `Bind` with a callback when you need to transform the value or update multiple properties at once.
 
+### Event Handling
+
+Use `OnEvent` to connect instance events that automatically disconnect on unmount:
+
+```lua
+local button = controller:GetInstance():FindFirstChild("PlayButton") :: TextButton
+controller:OnEvent(button, "MouseButton1Click", function()
+    print("Play clicked")
+end)
+```
+
+Inside components, use `scope:OnEvent` for the same lifecycle-safe behavior.
+
+### Conditional Rendering
+
+Use `MountWhen` to mount a component only while a boolean state is true:
+
+```lua
+local isTooltipOpen = Flux:State(false)
+local tooltip = controller:GetInstance():FindFirstChild("Tooltip")
+
+if tooltip then
+    controller:MountWhen(isTooltipOpen, TooltipComponent, tooltip)
+end
+
+isTooltipOpen:Set(true)  -- mounts component
+isTooltipOpen:Set(false) -- unmounts component and cleans bindings/events
+```
+
+Inside components, `scope:MountWhen` enables the same pattern for nested UI trees. When the condition changes back to `true`, the component mounts again with a fresh scope.
+
 ### Animation
 
-Use `Flux:Tween` or `Flux:Spring` to get an animated state that smoothly follows a source state. Both return an `AnimatedState` that works transparently with `BindProperty`, `Bind`, and `Bag:Add`. Call `Destroy` on it when you're done.
+Use `Flux:Tween` or `Flux:Spring` to get an animated state that smoothly follows a source state. Both return an `AnimatedState` that works transparently with `BindProperty` and `Bind`. Call `Destroy` on it when you're done.
 
 #### Tween
 
@@ -180,7 +213,7 @@ health:Set(50) -- bar smoothly shrinks over 0.4s
 
 -- Clean up when done
 animHealth:Destroy()
-controller:Unmount()
+controller:Unmount() -- or Destroy
 ```
 
 #### Spring
@@ -199,7 +232,7 @@ open:Set(UDim2.fromScale(1, 1)) -- panel springs open
 
 -- Clean up when done
 animOpen:Destroy()
-controller:Unmount()
+controller:Unmount() -- or Destroy
 ```
 
 Typical damping values: `1.0` = critically damped (no overshoot), `0.7` = slightly bouncy, `0.5` = noticeably springy.
@@ -212,16 +245,8 @@ Access GUI elements through `controller:GetInstance()`:
 -- Get a direct child
 local frame = controller:GetInstance():FindFirstChild("Frame")
 
--- Get a nested child
-if frame then
-    local container = frame:FindFirstChild("Container")
-    if container then
-        local label = container:FindFirstChild("Label")
-    end
-end
-
--- Or use WaitForChild for elements that should always exist
-local frame = controller:GetInstance():WaitForChild("Frame")
+-- Find a nested descendant
+local deepChild = controller:GetInstance():FindFirstChild("DeepChild", true)
 ```
 
 Always check if instances exist before using them.
@@ -232,7 +257,7 @@ Create reusable components for common UI patterns:
 
 ```lua
 type Properties = {
-	health: Flux.State<number>,
+    health: Flux.State<number>,
     maxHealth: number?
 }
 
@@ -265,7 +290,7 @@ if healthBarFrame then
 end
 ```
 
-Components receive a `Scope` that automatically cleans up bindings when the controller is unmounted.
+Components receive a `Scope` that automatically cleans up bindings when the parent controller is unmounted/destroyed.
 
 ### Nested Components
 
@@ -349,23 +374,67 @@ When you call `controller:Unmount()`, it automatically cleans up:
 
 This cascading cleanup prevents memory leaks in complex component hierarchies.
 
-### Cleanup
+### Compose Components
 
-Always call `Unmount()` when you're done with a GUI:
+Use `Flux:Compose()` to combine multiple components into one reusable component.
+Composed components run in order and receive the same `instance`, `scope`, and `properties`.
 
 ```lua
-controller:Unmount()
+local FancyButton = Flux:Compose({
+    HoverEffect,
+    ClickEffect,
+    PulseEffect,
+})
+
+local button = controller:GetInstance():FindFirstChild("PlayButton")
+if button then
+    controller:Mount(FancyButton, button, {
+        accent = Color3.fromRGB(0, 170, 255),
+    })
+end
+```
+
+### Cleanup
+
+Always call `Unmount()` (or the compatibility alias `Destroy()`) when you're done with a GUI controller:
+
+```lua
+controller:Unmount() -- or controller:Destroy()
 ```
 
 This destroys the GUI instance and disconnects all bindings, preventing memory leaks.
 
+`Flux:Tween` and `Flux:Spring` return an `AnimatedState` that holds a `Heartbeat` connection (active while animating) and an observer on the source state. You **must** call `:Destroy()` when finished — it is not owned or cleaned up by the controller automatically:
+
+```lua
+local health = Flux:State(100)
+local animHealth = Flux:Tween(health, TweenInfo.new(0.4))
+
+controller:BindProperty(animHealth, bar, "Size")
+
+-- Clean up when tearing down
+controller:Destroy()
+animHealth:Destroy()
+health:Destroy()
+```
+
+Animation constraints and behavior:
+- `TweenInfo.RepeatCount`, `Reverses`, and `DelayTime` are ignored by `Flux:Tween`
+- `Flux:Spring(source, speed, damping)` requires `speed > 0` and `damping >= 0`
+- `Spring` requires a non-nil initial source value
+- `Tween` and `Spring` expect source values to keep a consistent value type over time
+- `AnimatedState:Destroy()` is idempotent (safe to call more than once)
+
+If a `State` or `Computed` is no longer needed, call `:Destroy()` and release references to it.
+
 ## Best Practices
 
-1. **Always unmount** - Call `controller:Unmount()` when you're done with a GUI
+1. **Always teardown controllers** - Call `controller:Unmount()` or `controller:Destroy()` when done
 2. **Check for nil** - Always check if `FindFirstChild()` returns a valid instance
 3. **Use components** - Encapsulate reusable UI behavior in component functions
 4. **One state, many bindings** - Multiple UI elements can bind to the same state
-5. **Organize state** - Keep related state together in a module
+5. **Destroy temporary state** - Call `:Destroy()` on short-lived `State`, `Computed`, and `AnimatedState` values
+6. **Organize state** - Keep related state together in a module
 
 ## Example (Coin Counter)
 
@@ -400,4 +469,5 @@ addCoins(10)
 
 -- Cleanup when done
 controller:Unmount()
+coinState:Destroy()
 ```
