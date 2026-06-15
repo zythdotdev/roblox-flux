@@ -52,8 +52,8 @@ type Controller = {
 	_Bag: Bag.Self,
 	_Scope: Scope,
 
-	Unmount: (self: Self) -> (),
 	Destroy: (self: Self) -> (),
+	Unmount: (self: Self) -> (),
 	Mount: (self: Self, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 	MountWhen: (self: Self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 	Bind: <T>(self: Self, state: State<T>, callback: (newValue: T?) -> ()) -> (),
@@ -84,11 +84,18 @@ local function createScope(parentBag: Bag.Self): Scope
 	local scope = {}
 
 	function scope:Bind<U>(state: State<U>, callback: (newValue: U?) -> ())
+		assert(state ~= nil and type(state.Observe) == "function", "[Flux] Bind: state must be a State")
+		assert(type(callback) == "function", "[Flux] Bind: callback must be a function")
+
 		local connection = state:Observe(callback)
 		parentBag:Add(connection)
 	end
 
 	function scope:BindProperty<U>(state: State<U>, instance: Instance, property: string)
+		assert(state ~= nil and type(state.Observe) == "function", "[Flux] BindProperty: state must be a State")
+		assert(typeof(instance) == "Instance", "[Flux] BindProperty: instance must be an Instance")
+		assert(type(property) == "string" and #property > 0, "[Flux] BindProperty: property must be a non-empty string")
+
 		scope:Bind(state, function(value: U?)
 			instance[property] = value
 		end)
@@ -97,19 +104,30 @@ local function createScope(parentBag: Bag.Self): Scope
 	function scope:OnEvent(instance: Instance, eventName: string, callback: (...any) -> ())
 		assert(type(eventName) == "string" and #eventName > 0, "[Flux] OnEvent: eventName must be a non-empty string")
 		assert(type(callback) == "function", "[Flux] OnEvent: callback must be a function")
+
 		local signal = instance[eventName]
 		assert(typeof(signal) == "RBXScriptSignal", string.format("[Flux] OnEvent: '%s' is not a valid event on %s", eventName, instance.ClassName))
+
 		local connection = signal:Connect(callback)
 		parentBag:Add(connection)
 	end
 
 	function scope:Mount(component: Component, instance: Instance, properties: {[string]: any}?)
+		assert(type(component) == "function", "[Flux] Mount: component must be a function")
+		assert(typeof(instance) == "Instance", "[Flux] Mount: instance must be an Instance")
+		assert(properties == nil or typeof(properties) == "table", "[Flux] Mount: properties must be a table or nil")
+
 		local childBag = Bag.new()
 		parentBag:Add(childBag)
 		component(instance, createScope(childBag), properties)
 	end
 
 	function scope:MountWhen(condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?)
+		assert(condition ~= nil and type(condition.Observe) == "function", "[Flux] MountWhen: condition must be a State<boolean>")
+		assert(type(component) == "function", "[Flux] MountWhen: component must be a function")
+		assert(typeof(instance) == "Instance", "[Flux] MountWhen: instance must be an Instance")
+		assert(properties == nil or typeof(properties) == "table", "[Flux] MountWhen: properties must be a table or nil")
+
 		local mounted = false
 		local mountedBag: Bag.Self? = nil
 
@@ -139,6 +157,9 @@ end
 	Creates a new Controller for the given GUI instance.
 ]=]
 function Controller.new(gui: ScreenGui | SurfaceGui | BillboardGui): Controller
+	assert(typeof(gui) == "Instance", "[Flux] Controller.new: gui must be an Instance")
+	assert(gui:IsA("ScreenGui") or gui:IsA("SurfaceGui") or gui:IsA("BillboardGui"), "[Flux] Controller.new: gui must be a ScreenGui, SurfaceGui, or BillboardGui")
+
 	local bag = Bag.new()
 	bag:Add(gui)
 
@@ -206,6 +227,10 @@ end
 ]=]
 function Controller.Bind<T>(self: Self, state: State<T>, callback: (newValue: T?) -> ())
 	if self._Bag._Destroyed then return end
+
+	assert(state ~= nil and type(state.Observe) == "function", "[Flux] Bind: state must be a State")
+	assert(type(callback) == "function", "[Flux] Bind: callback must be a function")
+
 	self._Scope:Bind(state, callback)
 end
 
@@ -225,6 +250,11 @@ end
 ]=]
 function Controller.BindProperty<T>(self: Self, state: State<T>, instance: Instance, property: string)
 	if self._Bag._Destroyed then return end
+
+	assert(state ~= nil and type(state.Observe) == "function", "[Flux] BindProperty: state must be a State")
+	assert(typeof(instance) == "Instance", "[Flux] BindProperty: instance must be an Instance")
+	assert(type(property) == "string" and #property > 0, "[Flux] BindProperty: property must be a non-empty string")
+
 	self._Scope:BindProperty(state, instance, property)
 end
 
@@ -247,6 +277,11 @@ end
 ]=]
 function Controller.OnEvent(self: Self, instance: Instance, eventName: string, callback: (...any) -> ())
 	if self._Bag._Destroyed then return end
+
+	assert(typeof(instance) == "Instance", "[Flux] OnEvent: instance must be an Instance")
+	assert(type(eventName) == "string" and #eventName > 0, "[Flux] OnEvent: eventName must be a non-empty string")
+	assert(type(callback) == "function", "[Flux] OnEvent: callback must be a function")
+
 	self._Scope:OnEvent(instance, eventName, callback)
 end
 
@@ -276,6 +311,11 @@ end
 ]=]
 function Controller.Mount(self: Self, component: Component, instance: Instance, properties: {[string]: any}?)
 	if self._Bag._Destroyed then return end
+
+	assert(type(component) == "function", "[Flux] Mount: component must be a function")
+	assert(typeof(instance) == "Instance", "[Flux] Mount: instance must be an Instance")
+	assert(properties == nil or typeof(properties) == "table", "[Flux] Mount: properties must be a table or nil")
+
 	self._Scope:Mount(component, instance, properties)
 end
 
@@ -308,6 +348,12 @@ end
 ]=]
 function Controller.MountWhen(self: Self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?)
 	if self._Bag._Destroyed then return end
+
+	assert(condition ~= nil and type(condition.Observe) == "function", "[Flux] MountWhen: condition must be a State<boolean>")
+	assert(type(component) == "function", "[Flux] MountWhen: component must be a function")
+	assert(typeof(instance) == "Instance", "[Flux] MountWhen: instance must be an Instance")
+	assert(properties == nil or typeof(properties) == "table", "[Flux] MountWhen: properties must be a table or nil")
+
 	self._Scope:MountWhen(condition, component, instance, properties)
 end
 

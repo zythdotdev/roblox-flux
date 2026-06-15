@@ -10,12 +10,15 @@ local Spring = require(script.Spring)
 	@interface Scope
 	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
 	@field BindProperty (self, state: State<T>, instance: Instance, property: string) -> () -- Binds a `State` directly to a named property on an instance
+	@field OnEvent (self, instance: Instance, eventName: string, callback: (...any) -> ()) -> () -- Connects an instance event scoped to this component's lifecycle
 	@field Mount (self, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
+	@field MountWhen (self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Conditionally mounts a child component based on state
 
 	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state,
-	`BindProperty` to drive a named instance property directly from state, and `Mount` to compose child
-	components. All bindings and child mounts made through this scope are automatically cleaned up when
-	the parent GUI is unmounted.
+	`BindProperty` to drive a named instance property directly from state, `OnEvent` to connect instance
+	events, `Mount` to compose child components, and `MountWhen` for conditional rendering.
+	All bindings, event connections, and child mounts made through this scope are automatically
+	cleaned up when the parent GUI is unmounted.
 ]=]
 export type Scope = Controller.Scope
 
@@ -59,6 +62,7 @@ export type AnimatedState<T> = {
 type Flux = {
 	State: <T>(self: Flux, initialValue: T?) -> State<T>,
 	Computed: <T>(self: Flux, callback: (...any) -> T, dependencies: {State<any>}?) -> State<T>,
+	Compose: (self: Flux, components: {Component}) -> Component,
 	Tween: <T>(self: Flux, source: State<T>, tweenInfo: TweenInfo) -> AnimatedState<T>,
 	Spring: <T>(self: Flux, source: State<T>, speed: number, damping: number) -> AnimatedState<T>,
 	MountScreenGui: (self: Flux, gui: ScreenGui) -> Controller.Self,
@@ -133,15 +137,112 @@ end
 	caller perspective and is cleaned up automatically when its dependencies are destroyed.
 ]=]
 function Flux.Computed<T>(_self: Flux, callback: (...any) -> T, dependencies: {State<any>}?): State<T>
+	assert(type(callback) == "function", "[Flux] Computed: callback must be a function")
+
 	if dependencies then
 		assert(typeof(dependencies) == "table", "[Flux] Computed: dependencies must be a table")
-		for i, dep in dependencies do
-			assert(dep ~= nil, "[Flux] Computed: dependency at index " .. i .. " is nil")
+		for i, dependency in dependencies do
+			assert(dependency ~= nil, "[Flux] Computed: dependency at index " .. i .. " is nil")
+			assert(type(dependency.Observe) == "function", "[Flux] Computed: dependency at index " .. i .. " is not a State")
 		end
 	end
-	return Value.computed(function(...: any)
-		return callback(...)
-	end, dependencies)
+
+	local computed = Value.new(nil)
+	local dependencyConnections: {Value.EventConnection} = {}
+	local isDestroyed = false
+
+	local function disconnectDependencies()
+		for _, connection in dependencyConnections do
+			if connection and connection.IsConnected and connection:IsConnected() then
+				connection:Disconnect()
+			end
+		end
+		table.clear(dependencyConnections)
+	end
+
+	local function destroyComputed()
+		if isDestroyed then
+			return
+		end
+		isDestroyed = true
+		disconnectDependencies()
+		computed:Destroy()
+	end
+
+	local function recompute()
+		if isDestroyed then
+			return
+		end
+
+		if dependencies then
+			local values = table.create(#dependencies)
+			for i, dependency in dependencies do
+				local ok, valueOrErr = pcall(function()
+					return dependency:Get()
+				end)
+
+				if not ok then
+					destroyComputed()
+					return
+				end
+
+				values[i] = valueOrErr
+			end
+
+			computed:Set(callback(table.unpack(values, 1, #values)))
+		else
+			computed:Set(callback())
+		end
+	end
+
+	if dependencies then
+		for _, dependency in dependencies do
+			local connection = dependency:Observe(function()
+				recompute()
+			end)
+			table.insert(dependencyConnections, connection)
+		end
+	else
+		recompute()
+	end
+
+	local originalDestroy = computed.Destroy
+	computed.Destroy = function(self: State<T>)
+		disconnectDependencies()
+		originalDestroy(self)
+	end
+
+	return computed
+end
+
+--[=[
+	@param components {Component} -- Components to run in sequence for the same instance and scope
+	@return Component
+
+	Composes multiple components into one component. The returned component invokes each
+	component in order using the same `instance`, `scope`, and `properties`.
+
+	```lua
+	local FancyButton = Flux:Compose({
+		HoverEffect,
+		ClickEffect,
+		PulseEffect,
+	})
+	controller:Mount(FancyButton, button, {theme = themeState})
+	```
+]=]
+function Flux.Compose(_self: Flux, components: {Component}): Component
+	assert(typeof(components) == "table", "[Flux] Compose: components must be a table")
+
+	for i, component in components do
+		assert(type(component) == "function", string.format("[Flux] Compose: component at index %d must be a function", i))
+	end
+
+	return function(instance: Instance, scope: Scope, properties: {[string]: any}?)
+		for _, component in components do
+			component(instance, scope, properties)
+		end
+	end
 end
 
 --[=[
@@ -161,6 +262,9 @@ end
 	```
 ]=]
 function Flux.Tween<T>(_self: Flux, source: State<T>, tweenInfo: TweenInfo): AnimatedState<T>
+	assert(source ~= nil, "[Flux] Tween: source state is required")
+	assert(typeof(tweenInfo) == "TweenInfo", "[Flux] Tween: tweenInfo must be a TweenInfo")
+
 	return Tween(source, tweenInfo)
 end
 
@@ -182,6 +286,10 @@ end
 	```
 ]=]
 function Flux.Spring<T>(_self: Flux, source: State<T>, speed: number, damping: number): AnimatedState<T>
+	assert(source ~= nil, "[Flux] Spring: source state is required")
+	assert(type(speed) == "number", "[Flux] Spring: speed must be a number")
+	assert(type(damping) == "number", "[Flux] Spring: damping must be a number")
+
 	return Spring(source, speed, damping)
 end
 
@@ -193,9 +301,13 @@ end
 	that owns its lifecycle. The caller is responsible for cloning templates before passing them in.
 ]=]
 function Flux.MountScreenGui(_self: Flux, gui: ScreenGui): Controller.Self
+	assert(typeof(gui) == "Instance" and gui:IsA("ScreenGui"), "[Flux] MountScreenGui: gui must be a ScreenGui")
+
 	local localPlayer = Players.LocalPlayer
 	assert(localPlayer, "[Flux] MountScreenGui: LocalPlayer not available")
+
 	gui.Parent = localPlayer.PlayerGui
+
 	return Controller.new(gui)
 end
 
@@ -210,13 +322,21 @@ end
 	responsible for cloning templates before passing them in.
 ]=]
 function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?): Controller.Self
+	assert(typeof(gui) == "Instance" and gui:IsA("SurfaceGui"), "[Flux] MountSurfaceGui: gui must be a SurfaceGui")
+	assert(typeof(adornee) == "Instance" and adornee:IsA("BasePart"), "[Flux] MountSurfaceGui: adornee must be a BasePart")
+	if face ~= nil then
+		assert(typeof(face) == "EnumItem" and face.EnumType == Enum.NormalId, "[Flux] MountSurfaceGui: face must be an Enum.NormalId")
+	end
+
+	local localPlayer = Players.LocalPlayer
+	assert(localPlayer, "[Flux] MountSurfaceGui: LocalPlayer not available")
+
 	gui.Adornee = adornee
 	if face then
 		gui.Face = face
 	end
-	local localPlayer = Players.LocalPlayer
-	assert(localPlayer, "[Flux] MountSurfaceGui: LocalPlayer not available")
 	gui.Parent = localPlayer.PlayerGui
+
 	return Controller.new(gui)
 end
 
@@ -230,10 +350,15 @@ end
 	templates before passing them in.
 ]=]
 function Flux.MountBillboardGui(_self: Flux, gui: BillboardGui, adornee: BasePart): Controller.Self
-	gui.Adornee = adornee
+	assert(typeof(gui) == "Instance" and gui:IsA("BillboardGui"), "[Flux] MountBillboardGui: gui must be a BillboardGui")
+	assert(typeof(adornee) == "Instance" and adornee:IsA("BasePart"), "[Flux] MountBillboardGui: adornee must be a BasePart")
+
 	local localPlayer = Players.LocalPlayer
 	assert(localPlayer, "[Flux] MountBillboardGui: LocalPlayer not available")
+
+	gui.Adornee = adornee
 	gui.Parent = localPlayer.PlayerGui
+
 	return Controller.new(gui)
 end
 

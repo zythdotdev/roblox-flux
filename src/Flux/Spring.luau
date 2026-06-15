@@ -44,7 +44,15 @@ local function recompose(typeName: string, c: Components): any
 	error("[Flux] Spring: unsupported type '" .. typeName .. "'", 2)
 end
 
+local function isFiniteNumber(value: number): boolean
+	return value == value and value ~= math.huge and value ~= -math.huge
+end
+
 local function Spring<T>(source: Value.Self<T>, speed: number, damping: number): AnimatedState<T>
+	assert(source ~= nil, "[Flux] Spring: source state is required")
+	assert(type(speed) == "number" and isFiniteNumber(speed) and speed > 0, "[Flux] Spring: speed must be a finite number > 0")
+	assert(type(damping) == "number" and isFiniteNumber(damping) and damping >= 0, "[Flux] Spring: damping must be a finite number >= 0")
+
 	local initial = source:Get()
 	assert(initial ~= nil, "[Flux] Spring: source must have a non-nil initial value")
 
@@ -54,9 +62,10 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 	local animated = Value.new(initial)
 	local settled = true
 	local started = false
+	local hadNilTarget = false
+	local isDestroyed = false
 	local heartbeatConn: RBXScriptConnection? = nil
 
-	-- Hoist constants — speed and damping are fixed at construction time
 	local twoZetaOmega = 2 * damping * speed
 	local omegaSq = speed * speed
 
@@ -68,7 +77,6 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 	end
 
 	local function step(dt: number)
-		-- Clamp dt so a frame spike cannot push the integrator past its stability limit
 		dt = math.min(dt, MAX_DT)
 
 		local allSettled = true
@@ -77,7 +85,8 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 			local accel = (target[i] - position[i]) * omegaSq - velocity[i] * twoZetaOmega
 			velocity[i] += accel * dt
 			position[i] += velocity[i] * dt
-			if math.abs(velocity[i]) > SETTLE_THRESHOLD or math.abs(position[i] - target[i]) > SETTLE_THRESHOLD then
+			local displacement = target[i] - position[i]
+			if math.abs(displacement) + math.abs(velocity[i]) > SETTLE_THRESHOLD then
 				allSettled = false
 			end
 		end
@@ -102,11 +111,30 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 
 		if newTarget == nil then
 			cancelHeartbeat()
+			hadNilTarget = true
+			settled = true
+			for i = 1, #velocity do
+				velocity[i] = 0
+			end
 			animated:Set(nil)
 			return
 		end
 
-		local newComponents = decompose(newTarget)
+		local newComponents, newTypeName = decompose(newTarget)
+		assert(newTypeName == typeName, string.format("[Flux] Spring: source type changed from '%s' to '%s'", typeName, newTypeName))
+
+		if hadNilTarget then
+			hadNilTarget = false
+			for i = 1, #newComponents do
+				position[i] = newComponents[i]
+				target[i] = newComponents[i]
+				velocity[i] = 0
+			end
+			settled = true
+			animated:Set(recompose(typeName, position))
+			return
+		end
+
 		for i = 1, #newComponents do
 			target[i] = newComponents[i]
 		end
@@ -125,6 +153,8 @@ local function Spring<T>(source: Value.Self<T>, speed: number, damping: number):
 			return animated:Observe(callback)
 		end,
 		Destroy = function(_self: AnimatedState<T>)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelHeartbeat()
 			connection:Disconnect()
 			animated:Destroy()

@@ -17,7 +17,15 @@ local function lerp(a: any, b: any, alpha: number): any
 	end
 end
 
+local function isFiniteNumber(value: number): boolean
+	return value == value and value ~= math.huge and value ~= -math.huge
+end
+
 local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedState<T>
+	assert(source ~= nil, "[Flux] Tween: source state is required")
+	assert(typeof(tweenInfo) == "TweenInfo", "[Flux] Tween: tweenInfo must be a TweenInfo")
+	assert(isFiniteNumber(tweenInfo.Time) and tweenInfo.Time >= 0, "[Flux] Tween: tweenInfo.Time must be a finite number >= 0")
+
 	if tweenInfo.RepeatCount ~= 0 or tweenInfo.Reverses or tweenInfo.DelayTime ~= 0 then
 		warn("[Flux] Tween: TweenInfo RepeatCount, Reverses, and DelayTime are not supported and will be ignored")
 	end
@@ -25,6 +33,8 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 	local animated = Value.new(source:Get())
 	local heartbeatConn: RBXScriptConnection? = nil
 	local started = false
+	local hadNilTarget = false
+	local isDestroyed = false
 
 	local function cancelHeartbeat()
 		if heartbeatConn then
@@ -42,7 +52,14 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 		cancelHeartbeat()
 
 		if target == nil then
+			hadNilTarget = true
 			animated:Set(nil)
+			return
+		end
+
+		if hadNilTarget then
+			hadNilTarget = false
+			animated:Set(target)
 			return
 		end
 
@@ -51,6 +68,10 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 			animated:Set(target)
 			return
 		end
+
+		local startType = typeof(startValue)
+		local targetType = typeof(target)
+		assert(startType == targetType, string.format("[Flux] Tween: source type changed from '%s' to '%s'", startType, targetType))
 
 		local elapsed = 0
 		local duration = tweenInfo.Time
@@ -66,7 +87,13 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 			elapsed += dt
 			local alpha = math.min(elapsed / duration, 1)
 			local easedAlpha = TweenService:GetValue(alpha, style, direction)
-			animated:Set(lerp(startValue, target, easedAlpha))
+			local ok, valueOrErr = pcall(lerp, startValue, target, easedAlpha)
+			if not ok then
+				cancelHeartbeat()
+				error(string.format("[Flux] Tween: failed to interpolate '%s' values (%s)", startType, tostring(valueOrErr)), 0)
+			end
+
+			animated:Set(valueOrErr)
 			if alpha >= 1 then
 				cancelHeartbeat()
 			end
@@ -81,6 +108,8 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 			return animated:Observe(callback)
 		end,
 		Destroy = function(_self: AnimatedState<T>)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelHeartbeat()
 			sourceConn:Disconnect()
 			animated:Destroy()
