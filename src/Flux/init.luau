@@ -72,7 +72,6 @@ type Flux = {
 ]=]
 export type Self = Flux
 
-
 --[=[
 	@class Flux
 
@@ -126,7 +125,7 @@ end
 
 --[=[
 	@param callback () -> T -- A function that derives the computed value from current dependencies
-	@param dependencies {State<any>}? -- Optional list of states to observe; if omitted, the callback is evaluated once
+	@param dependencies {State<any>}? -- Optional array of states to observe; if omitted, the callback is evaluated once
 	@return State<T>
 
 	Creates a reactive derived state value. The callback runs immediately to seed the value,
@@ -134,6 +133,12 @@ end
 	caller perspective and is cleaned up automatically when its dependencies are destroyed.
 ]=]
 function Flux.Computed<T>(_self: Flux, callback: (...any) -> T, dependencies: {State<any>}?): State<T>
+	if dependencies then
+		assert(typeof(dependencies) == "table", "[Flux] Computed: dependencies must be a table")
+		for i, dep in dependencies do
+			assert(dep ~= nil, "[Flux] Computed: dependency at index " .. i .. " is nil")
+		end
+	end
 	return Value.computed(function(...: any)
 		return callback(...)
 	end, dependencies)
@@ -188,7 +193,9 @@ end
 	that owns its lifecycle. The caller is responsible for cloning templates before passing them in.
 ]=]
 function Flux.MountScreenGui(_self: Flux, gui: ScreenGui): Controller.Self
-	gui.Parent = Players.LocalPlayer.PlayerGui
+	local localPlayer = Players.LocalPlayer
+	assert(localPlayer, "[Flux] MountScreenGui: LocalPlayer not available")
+	gui.Parent = localPlayer.PlayerGui
 	return Controller.new(gui)
 end
 
@@ -207,7 +214,9 @@ function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: BasePart, f
 	if face then
 		gui.Face = face
 	end
-	gui.Parent = Players.LocalPlayer.PlayerGui
+	local localPlayer = Players.LocalPlayer
+	assert(localPlayer, "[Flux] MountSurfaceGui: LocalPlayer not available")
+	gui.Parent = localPlayer.PlayerGui
 	return Controller.new(gui)
 end
 
@@ -222,7 +231,9 @@ end
 ]=]
 function Flux.MountBillboardGui(_self: Flux, gui: BillboardGui, adornee: BasePart): Controller.Self
 	gui.Adornee = adornee
-	gui.Parent = Players.LocalPlayer.PlayerGui
+	local localPlayer = Players.LocalPlayer
+	assert(localPlayer, "[Flux] MountBillboardGui: LocalPlayer not available")
+	gui.Parent = localPlayer.PlayerGui
 	return Controller.new(gui)
 end
 

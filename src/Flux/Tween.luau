@@ -19,7 +19,7 @@ end
 
 local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedState<T>
 	if tweenInfo.RepeatCount ~= 0 or tweenInfo.Reverses or tweenInfo.DelayTime ~= 0 then
-		warn("Flux.Tween: TweenInfo RepeatCount, Reverses, and DelayTime are not supported and will be ignored")
+		warn("[Flux] Tween: TweenInfo RepeatCount, Reverses, and DelayTime are not supported and will be ignored")
 	end
 
 	local animated = Value.new(source:Get())

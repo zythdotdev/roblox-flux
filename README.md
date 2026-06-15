@@ -4,8 +4,9 @@ A simple, lightweight reactive UI framework for Roblox that makes building dynam
 
 ## Features
 
-- 🎯 **Reactive State Management** - Create observable state that automatically updates your UI
+- 🔄 **Reactive State Management** - Create observable state that automatically updates your UI
 - 🧩 **Component System** - Build reusable UI components with automatic lifecycle management
+- 🎬 **Smooth Animations** - Tween and Spring animations that follow reactive state with automatic cleanup
 - 🧹 **Automatic Cleanup** - No memory leaks - all bindings are automatically cleaned up
 - 📦 **Lightweight** - Minimal dependencies and small footprint
 - 🔒 **Type-Safe** - Full Luau type annotations for better IDE support
@@ -166,7 +167,7 @@ Use `Flux:Tween` or `Flux:Spring` to get an animated state that smoothly follows
 
 #### Tween
 
-Interpolates toward the source value using `TweenInfo` for timing and easing. Supports `number` and any Roblox type with a `:Lerp` method (UDim2, Vector2, Vector3, Color3, CFrame, UDim).
+Interpolates toward the source value using `TweenInfo` for timing and easing. Supports `number` and any Roblox type with a `:Lerp` method (UDim2, Vector2, Vector3, Color3, CFrame, UDim). Note: TweenInfo `RepeatCount`, `Reverses`, and `DelayTime` properties are not supported and will be ignored.
 
 ```lua
 local health = Flux:State(100)
@@ -184,7 +185,7 @@ controller:Unmount()
 
 #### Spring
 
-Drives the value with spring physics — naturally overshoots when underdamped, settles cleanly when critically damped. Supports `number`, Vector2, Vector3, Color3, and UDim2. The internal `Heartbeat` connection is only active while the spring is moving.
+Drives the value with spring physics — naturally overshoots when underdamped, settles cleanly when critically damped. **Supports** `number`, Vector2, Vector3, Color3, and UDim2 (not CFrame). The internal `Heartbeat` connection is only active while the spring is moving.
 
 ```lua
 local open = Flux:State(UDim2.fromScale(0, 0))

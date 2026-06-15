@@ -26,7 +26,7 @@ local function decompose(value: any): (Components, string)
 	elseif t == "UDim2" then
 		return { value.X.Scale, value.X.Offset, value.Y.Scale, value.Y.Offset }, "UDim2"
 	end
-	error("Spring: unsupported type '" .. t .. "'", 2)
+	error("[Flux] Spring: unsupported type '" .. t .. "'", 2)
 end
 
 local function recompose(typeName: string, c: Components): any
@@ -41,12 +41,12 @@ local function recompose(typeName: string, c: Components): any
 	elseif typeName == "UDim2" then
 		return UDim2.new(c[1], c[2], c[3], c[4])
 	end
-	error("Spring: unsupported type '" .. typeName .. "'", 2)
+	error("[Flux] Spring: unsupported type '" .. typeName .. "'", 2)
 end
 
 local function Spring<T>(source: Value.Self<T>, speed: number, damping: number): AnimatedState<T>
 	local initial = source:Get()
-	assert(initial ~= nil, "Spring: source must have a non-nil initial value")
+	assert(initial ~= nil, "[Flux] Spring: source must have a non-nil initial value")
 
 	local position, typeName = decompose(initial)
 	local target: Components = table.clone(position)
