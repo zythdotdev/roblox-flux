@@ -435,39 +435,3 @@ If a `State` or `Computed` is no longer needed, call `:Destroy()` and release re
 4. **One state, many bindings** - Multiple UI elements can bind to the same state
 5. **Destroy temporary state** - Call `:Destroy()` on short-lived `State`, `Computed`, and `AnimatedState` values
 6. **Organize state** - Keep related state together in a module
-
-## Example (Coin Counter)
-
-```lua
-local Flux = require(ReplicatedStorage.Flux)
-
--- Create the coin state
-local coinState = Flux:State(0)
-
--- Clone and mount the GUI
-local gui = ReplicatedStorage.Assets.Gui.CoinGui:Clone()
-local controller = Flux:MountScreenGui(gui)
-
--- Bind coin state to UI updates
-controller:Bind(coinState, function(coins: number)
-    local coinFrame = controller:GetInstance():FindFirstChild("CoinFrame")
-    if coinFrame then
-        local label = coinFrame:FindFirstChild("CoinLabel")
-        if label and label:IsA("TextLabel") then
-            label.Text = tostring(coins) .. " Coins"
-        end
-    end
-end)
-
--- Update coins from gameplay events
-local function addCoins(amount: number)
-    local current = coinState:Get() or 0
-    coinState:Set(current + amount)
-end
-
-addCoins(10)
-
--- Cleanup when done
-controller:Unmount()
-coinState:Destroy()
-```
