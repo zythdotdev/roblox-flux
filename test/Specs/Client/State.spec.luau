@@ -159,6 +159,21 @@ return function()
 			expect(callCount).to.equal(1)
 		end)
 
+		it("should self-clean when a dependency is destroyed", function()
+			local base = Flux:State(2)
+			local computed = Flux:Computed(function(value)
+				return value * 2
+			end, { base })
+
+			expect(computed:Get()).to.equal(4)
+
+			base:Destroy()
+
+			expect(function()
+				computed:Get()
+			end).to.throw()
+		end)
+
 		it("should return a working Setter function", function()
 			local state = Flux:State(0)
 			local setter = state:Setter()
@@ -174,6 +189,30 @@ return function()
 			expect(function()
 				state:Get()
 			end).to.throw()
+		end)
+
+		it("should compose components and invoke all in order", function()
+			local gui = Instance.new("ScreenGui")
+			local controller = Flux:MountScreenGui(gui)
+			local frame = Instance.new("Frame")
+			frame.Parent = gui
+
+			local order = {}
+			local composed = Flux:Compose({
+				function(_instance: Instance, _scope: Flux.Scope, _props: {[string]: any}?)
+					table.insert(order, "first")
+				end,
+				function(_instance: Instance, _scope: Flux.Scope, _props: {[string]: any}?)
+					table.insert(order, "second")
+				end,
+			})
+
+			controller:Mount(composed, frame)
+
+			expect(order[1]).to.equal("first")
+			expect(order[2]).to.equal("second")
+
+			controller:Unmount()
 		end)
 	end)
 end

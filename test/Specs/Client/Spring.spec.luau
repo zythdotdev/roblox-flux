@@ -3,6 +3,20 @@ return function()
 	local Flux = require(ReplicatedStorage.Packages.Flux)
 
 	describe("Spring", function()
+		it("should validate source, speed, and damping arguments", function()
+			expect(function()
+				Flux:Spring(nil :: any, 20, 1)
+			end).to.throw()
+
+			expect(function()
+				Flux:Spring(Flux:State(0), nil :: any, 1)
+			end).to.throw()
+
+			expect(function()
+				Flux:Spring(Flux:State(0), 20, nil :: any)
+			end).to.throw()
+		end)
+
 		it("should set the initial value immediately without animating", function()
 			local state = Flux:State(10)
 			local anim = Flux:Spring(state, 20, 1)
@@ -98,6 +112,52 @@ return function()
 			expect(function()
 				bag:Destroy()
 			end).never.to.throw()
+		end)
+
+		it("should be safe to call Destroy twice", function()
+			local state = Flux:State(0)
+			local anim = Flux:Spring(state, 20, 1)
+			anim:Destroy()
+			expect(function()
+				anim:Destroy()
+			end).never.to.throw()
+		end)
+
+		it("should be safe to Destroy manually then via Bag", function()
+			local Bag = require(ReplicatedStorage.Packages.Bag)
+			local bag = Bag.new()
+
+			local state = Flux:State(0)
+			local anim = Flux:Spring(state, 20, 1)
+			bag:Add(anim)
+			anim:Destroy()
+			expect(function()
+				bag:Destroy()
+			end).never.to.throw()
+		end)
+
+		it("should reset after nil and snap to next non-nil target", function()
+			local state = Flux:State(0)
+			local anim = Flux:Spring(state, 20, 1)
+
+			state:Set(nil)
+			expect(anim:Get()).to.equal(nil)
+
+			state:Set(25)
+			expect(anim:Get()).to.equal(25)
+			anim:Destroy()
+		end)
+
+		it("should reject invalid speed and damping values", function()
+			local state = Flux:State(0)
+
+			expect(function()
+				Flux:Spring(state, 0, 1)
+			end).to.throw()
+
+			expect(function()
+				Flux:Spring(state, 20, -1)
+			end).to.throw()
 		end)
 	end)
 end

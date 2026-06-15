@@ -3,6 +3,16 @@ return function()
 	local Flux = require(ReplicatedStorage.Packages.Flux)
 
 	describe("Tween", function()
+		it("should validate source and tweenInfo arguments", function()
+			expect(function()
+				Flux:Tween(nil :: any, TweenInfo.new(0.2))
+			end).to.throw()
+
+			expect(function()
+				Flux:Tween(Flux:State(0), nil :: any)
+			end).to.throw()
+		end)
+
 		it("should set the initial value immediately without animating", function()
 			local state = Flux:State(10)
 			local anim = Flux:Tween(state, TweenInfo.new(0.5))
@@ -84,6 +94,51 @@ return function()
 			expect(function()
 				bag:Destroy()
 			end).never.to.throw()
+		end)
+
+		it("should be safe to call Destroy twice", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.2))
+			anim:Destroy()
+			expect(function()
+				anim:Destroy()
+			end).never.to.throw()
+		end)
+
+		it("should be safe to Destroy manually then via Bag", function()
+			local Bag = require(ReplicatedStorage.Packages.Bag)
+			local bag = Bag.new()
+
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.2))
+			bag:Add(anim)
+			anim:Destroy()
+			expect(function()
+				bag:Destroy()
+			end).never.to.throw()
+		end)
+
+		it("should reset after nil and snap to next non-nil target", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.2))
+
+			state:Set(nil)
+			expect(anim:Get()).to.equal(nil)
+
+			state:Set(25)
+			expect(anim:Get()).to.equal(25)
+			anim:Destroy()
+		end)
+
+		it("should error when source value type changes", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.2))
+
+			expect(function()
+				state:Set("oops")
+			end).to.throw()
+
+			anim:Destroy()
 		end)
 	end)
 end

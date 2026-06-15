@@ -52,6 +52,20 @@ return function()
 				controller:Unmount()
 				part:Destroy()
 			end)
+
+			it("should validate mount arguments", function()
+				expect(function()
+					Flux:MountScreenGui(Instance.new("Frame") :: any)
+				end).to.throw()
+
+				expect(function()
+					Flux:MountSurfaceGui(Instance.new("SurfaceGui"), Instance.new("Folder") :: any)
+				end).to.throw()
+
+				expect(function()
+					Flux:MountBillboardGui(Instance.new("BillboardGui"), Instance.new("Folder") :: any)
+				end).to.throw()
+			end)
 		end)
 
 		describe("GetInstance", function()
@@ -75,6 +89,33 @@ return function()
 				local gui = makeScreenGui()
 				local controller = Flux:MountScreenGui(gui)
 				controller:Unmount()
+				expect(function()
+					controller:Unmount()
+				end).never.to.throw()
+			end)
+		end)
+
+		describe("Destroy", function()
+			it("should be an alias of Unmount", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				controller:Destroy()
+				expect(gui.Parent).to.equal(nil)
+			end)
+
+			it("should be safe to call Destroy multiple times", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				controller:Destroy()
+				expect(function()
+					controller:Destroy()
+				end).never.to.throw()
+			end)
+
+			it("should be safe to mix Destroy and Unmount", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+				controller:Destroy()
 				expect(function()
 					controller:Unmount()
 				end).never.to.throw()
@@ -197,6 +238,59 @@ return function()
 				stateB:Set("y")
 				expect(receivedA).to.equal("x")
 				expect(receivedB).to.equal("y")
+				controller:Unmount()
+			end)
+
+			it("should validate bind arguments", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				expect(function()
+					controller:Bind(nil :: any, function() end)
+				end).to.throw()
+
+				expect(function()
+					controller:Bind(Flux:State(0), nil :: any)
+				end).to.throw()
+
+				controller:Unmount()
+			end)
+		end)
+
+		describe("MountWhen", function()
+			it("should conditionally mount and unmount a component from boolean state", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local frame = Instance.new("Frame")
+				frame.Parent = gui
+
+				local condition = Flux:State(false)
+				local source = Flux:State(0)
+				local callCount = 0
+
+				local function TestComponent(_instance: Instance, scope: Flux.Scope)
+					scope:Bind(source, function(_value)
+						callCount = callCount + 1
+					end)
+				end
+
+				controller:MountWhen(condition, TestComponent, frame)
+				expect(callCount).to.equal(0)
+
+				condition:Set(true)
+				expect(callCount).to.equal(1)
+
+				source:Set(1)
+				expect(callCount).to.equal(2)
+
+				condition:Set(false)
+				source:Set(2)
+				expect(callCount).to.equal(2)
+
+				condition:Set(true)
+				expect(callCount).to.equal(3)
+
 				controller:Unmount()
 			end)
 		end)

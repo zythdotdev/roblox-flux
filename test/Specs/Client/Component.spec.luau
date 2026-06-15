@@ -201,6 +201,46 @@ return function()
 				expect(receivedChildProperties.text).to.equal("hello")
 				controller:Unmount()
 			end)
+
+			it("should conditionally mount child components with MountWhen", function()
+				local gui = makeScreenGui()
+				local controller = Flux:MountScreenGui(gui)
+
+				local frame = Instance.new("Frame")
+				frame.Parent = gui
+				local label = Instance.new("TextLabel")
+				label.Parent = frame
+
+				local condition = Flux:State(false)
+				local source = Flux:State("initial")
+				local childCallCount = 0
+
+				local function ChildComponent(_instance: Instance, scope: Flux.Scope)
+					scope:Bind(source, function(_value)
+						childCallCount = childCallCount + 1
+					end)
+				end
+
+				local function ParentComponent(instance: Instance, scope: Flux.Scope)
+					local childInstance = instance:FindFirstChild("TextLabel")
+					scope:MountWhen(condition, ChildComponent, childInstance)
+				end
+
+				controller:Mount(ParentComponent, frame)
+				expect(childCallCount).to.equal(0)
+
+				condition:Set(true)
+				expect(childCallCount).to.equal(1)
+
+				source:Set("updated")
+				expect(childCallCount).to.equal(2)
+
+				condition:Set(false)
+				source:Set("after unmount")
+				expect(childCallCount).to.equal(2)
+
+				controller:Unmount()
+			end)
 		end)
 
 		describe("Scope:BindProperty", function()
