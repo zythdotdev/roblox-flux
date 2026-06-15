@@ -10,12 +10,12 @@ local Spring = require(script.Spring)
 	@interface Scope
 	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
 	@field BindProperty (self, state: State<T>, instance: Instance, property: string) -> () -- Binds a `State` directly to a named property on an instance
-	@field OnEvent (self, instance: Instance, eventName: string, callback: (...any) -> ()) -> () -- Connects an instance event scoped to this component's lifecycle
+	@field BindEvent (self, instance: Instance, eventName: string, callback: (...any) -> ()) -> () -- Connects an instance event scoped to this component's lifecycle
 	@field Mount (self, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
 	@field MountWhen (self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Conditionally mounts a child component based on state
 
 	A minimal lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state,
-	`BindProperty` to drive a named instance property directly from state, `OnEvent` to connect instance
+	`BindProperty` to drive a named instance property directly from state, `BindEvent` to connect instance
 	events, `Mount` to compose child components, and `MountWhen` for conditional rendering.
 	All bindings, event connections, and child mounts made through this scope are automatically
 	cleaned up when the parent GUI is unmounted.

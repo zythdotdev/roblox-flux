@@ -6,12 +6,12 @@ local Value = require(script.Parent.Packages.Value)
 	@interface Scope
 	@field Bind (self, state: State<T>, callback: (newValue: T?) -> ()) -> () -- Binds to a `State` scoped to this component's lifecycle
 	@field BindProperty (self, state: State<T>, instance: Instance, property: string) -> () -- Binds a `State` directly to a named property on an instance
-	@field OnEvent (self, instance: Instance, eventName: string, callback: (...any) -> ()) -> () -- Connects an instance event scoped to this component's lifecycle
+	@field BindEvent (self, instance: Instance, eventName: string, callback: (...any) -> ()) -> () -- Connects an instance event scoped to this component's lifecycle
 	@field Mount (self, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Mounts a child component scoped to this component's lifecycle
 	@field MountWhen (self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> () -- Conditionally mounts a child component based on state
 
 	A lifecycle scope passed to each component function. Use `Bind` to subscribe to reactive state,
-	`BindProperty` to drive a named instance property directly from state, `OnEvent` to connect instance
+	`BindProperty` to drive a named instance property directly from state, `BindEvent` to connect instance
 	events, `Mount` to compose child components, and `MountWhen` for conditional rendering.
 	All bindings, event connections, and child mounts made through this scope are automatically cleaned
 	up when the parent GUI is unmounted.
@@ -21,7 +21,7 @@ export type Scope = {
 	MountWhen: (self: Scope, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 	Bind: <T>(self: Scope, state: State<T>, callback: (newValue: T?) -> ()) -> (),
 	BindProperty: <T>(self: Scope, state: State<T>, instance: Instance, property: string) -> (),
-	OnEvent: (self: Scope, instance: Instance, eventName: string, callback: (...any) -> ()) -> (),
+	BindEvent: (self: Scope, instance: Instance, eventName: string, callback: (...any) -> ()) -> (),
 }
 
 --[=[
@@ -58,7 +58,7 @@ type Controller = {
 	MountWhen: (self: Self, condition: State<boolean>, component: Component, instance: Instance, properties: {[string]: any}?) -> (),
 	Bind: <T>(self: Self, state: State<T>, callback: (newValue: T?) -> ()) -> (),
 	BindProperty: <T>(self: Self, state: State<T>, instance: Instance, property: string) -> (),
-	OnEvent: (self: Self, instance: Instance, eventName: string, callback: (...any) -> ()) -> (),
+	BindEvent: (self: Self, instance: Instance, eventName: string, callback: (...any) -> ()) -> (),
 	GetInstance: (self: Self) -> ScreenGui | SurfaceGui | BillboardGui,
 }
 
@@ -101,12 +101,12 @@ local function createScope(parentBag: Bag.Self): Scope
 		end)
 	end
 
-	function scope:OnEvent(instance: Instance, eventName: string, callback: (...any) -> ())
-		assert(type(eventName) == "string" and #eventName > 0, "[Flux] OnEvent: eventName must be a non-empty string")
-		assert(type(callback) == "function", "[Flux] OnEvent: callback must be a function")
+	function scope:BindEvent(instance: Instance, eventName: string, callback: (...any) -> ())
+		assert(type(eventName) == "string" and #eventName > 0, "[Flux] BindEvent: eventName must be a non-empty string")
+		assert(type(callback) == "function", "[Flux] BindEvent: callback must be a function")
 
 		local signal = instance[eventName]
-		assert(typeof(signal) == "RBXScriptSignal", string.format("[Flux] OnEvent: '%s' is not a valid event on %s", eventName, instance.ClassName))
+		assert(typeof(signal) == "RBXScriptSignal", string.format("[Flux] BindEvent: '%s' is not a valid event on %s", eventName, instance.ClassName))
 
 		local connection = signal:Connect(callback)
 		parentBag:Add(connection)
@@ -269,20 +269,20 @@ end
 	```lua
 	local button = controller:GetInstance():FindFirstChild("Button")
 	if button then
-		controller:OnEvent(button, "Activated", function()
+		controller:BindEvent(button, "Activated", function()
 			print("Button clicked!")
 		end)
 	end
 	```
 ]=]
-function Controller.OnEvent(self: Self, instance: Instance, eventName: string, callback: (...any) -> ())
+function Controller.BindEvent(self: Self, instance: Instance, eventName: string, callback: (...any) -> ())
 	if self._Bag._Destroyed then return end
 
-	assert(typeof(instance) == "Instance", "[Flux] OnEvent: instance must be an Instance")
-	assert(type(eventName) == "string" and #eventName > 0, "[Flux] OnEvent: eventName must be a non-empty string")
-	assert(type(callback) == "function", "[Flux] OnEvent: callback must be a function")
+	assert(typeof(instance) == "Instance", "[Flux] BindEvent: instance must be an Instance")
+	assert(type(eventName) == "string" and #eventName > 0, "[Flux] BindEvent: eventName must be a non-empty string")
+	assert(type(callback) == "function", "[Flux] BindEvent: callback must be a function")
 
-	self._Scope:OnEvent(instance, eventName, callback)
+	self._Scope:BindEvent(instance, eventName, callback)
 end
 
 --[=[

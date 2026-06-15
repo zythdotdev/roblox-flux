@@ -165,16 +165,16 @@ controller:BindProperty(visible, frame, "Visible")
 
 ### Event Handling
 
-Use `OnEvent` to connect instance events that automatically disconnect on unmount:
+Use `BindEvent` to connect instance events that automatically disconnect on unmount:
 
 ```lua
 local button = controller:GetInstance():FindFirstChild("PlayButton") :: TextButton
-controller:OnEvent(button, "MouseButton1Click", function()
+controller:BindEvent(button, "MouseButton1Click", function()
     print("Play clicked")
 end)
 ```
 
-Inside components, use `scope:OnEvent` for the same lifecycle-safe behavior.
+Inside components, use `scope:BindEvent` for the same lifecycle-safe behavior.
 
 ### Conditional Rendering
 
