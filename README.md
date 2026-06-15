@@ -68,6 +68,28 @@ coins:Destroy()
 
 ## Core Concepts
 
+### Mounting GUIs
+
+Flux supports all three GUI types. You are responsible for cloning templates before passing them in, allowing you to build UI in Roblox Studio — Flux takes ownership of the instance you provide.
+
+#### ScreenGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountScreenGui(gui)
+```
+
+#### SurfaceGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountSurfaceGui(gui, partAdornee, Enum.NormalId.Front)
+```
+
+#### BillboardGui
+```lua
+local gui = template:Clone()
+local controller = Flux:MountBillboardGui(gui, partAdornee)
+```
+
 ### Reactive State
 
 Create reactive state with `Flux:State()`:
@@ -113,28 +135,6 @@ health:Set(75)
 ```
 
 The callback receives the current dependency values in the same order they are passed to the `dependencies` table, and the result behaves like any other reactive state value.
-
-### Mounting GUIs
-
-Flux supports all three GUI types. You are responsible for cloning templates before passing them in, allowing you to build UI in Roblox Studio — Flux takes ownership of the instance you provide.
-
-#### ScreenGui
-```lua
-local gui = template:Clone()
-local controller = Flux:MountScreenGui(gui)
-```
-
-#### SurfaceGui
-```lua
-local gui = template:Clone()
-local controller = Flux:MountSurfaceGui(gui, partAdornee, Enum.NormalId.Front)
-```
-
-#### BillboardGui
-```lua
-local gui = template:Clone()
-local controller = Flux:MountBillboardGui(gui, partAdornee)
-```
 
 ### Binding State to UI
 
@@ -236,20 +236,6 @@ controller:Unmount() -- or Destroy
 ```
 
 Typical damping values: `1.0` = critically damped (no overshoot), `0.7` = slightly bouncy, `0.5` = noticeably springy.
-
-### Accessing GUI Elements
-
-Access GUI elements through `controller:GetInstance()`:
-
-```lua
--- Get a direct child
-local frame = controller:GetInstance():FindFirstChild("Frame")
-
--- Find a nested descendant
-local deepChild = controller:GetInstance():FindFirstChild("DeepChild", true)
-```
-
-Always check if instances exist before using them.
 
 ### Components
 
