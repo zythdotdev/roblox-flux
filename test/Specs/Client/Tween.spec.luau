@@ -130,14 +130,98 @@ return function()
 			anim:Destroy()
 		end)
 
-		it("should error when source value type changes", function()
+		it("should reject a source value whose type changes", function()
+			-- The type guard lives in the Tween's observer. Observer errors are isolated by the
+			-- Event library (they surface asynchronously), so Set does not throw synchronously.
+			-- What we can assert is that the invalid write never reaches the animated output.
 			local state = Flux:State(0)
 			local anim = Flux:Tween(state, TweenInfo.new(0.2))
 
-			expect(function()
-				state:Set("oops")
-			end).to.throw()
+			state:Set("oops" :: any)
+			task.wait(0.1)
 
+			expect(typeof(anim:Get())).never.to.equal("string")
+			anim:Destroy()
+		end)
+
+		it("should jump instantly when animated is false, without waiting", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.5))
+
+			state:Set(100, false)
+			-- No task.wait: an instant write must land synchronously.
+			expect(anim:Get()).to.equal(100)
+			anim:Destroy()
+		end)
+
+		it("should fire Completed when an instant write arrives", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.5))
+
+			local fired = false
+			anim:Completed(function()
+				fired = true
+			end)
+
+			state:Set(100, false)
+			expect(fired).to.equal(true)
+			anim:Destroy()
+		end)
+
+		it("should not arrive instantly for an animated write", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.5))
+
+			state:Set(100) -- animated (default)
+			-- Without waiting, the value should still be at (or near) the start.
+			expect(anim:Get()).never.to.equal(100)
+			anim:Destroy()
+		end)
+
+		it("should not fire Completed when instantly cleared to nil", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.5))
+
+			local fired = false
+			anim:Completed(function()
+				fired = true
+			end)
+
+			state:Set(nil, false)
+			expect(anim:Get()).to.equal(nil)
+			expect(fired).to.equal(false)
+			anim:Destroy()
+		end)
+
+		it("should keep source and displayed value coherent after an instant write", function()
+			-- Regression: an instant seed must update the single source of truth, so a later
+			-- Set to the same value is a true no-op (no missed animation).
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.2))
+
+			state:Set(50, false)
+			expect(state:Get()).to.equal(50)
+			expect(anim:Get()).to.equal(50)
+
+			-- Animate away, then back to the seeded value to prove it animates normally.
+			state:Set(0)
+			task.wait(0.3)
+			expect(math.abs((anim:Get() or 0) - 0) < 0.01).to.equal(true)
+			anim:Destroy()
+		end)
+
+		it("should cancel an in-flight animation when an instant write lands", function()
+			local state = Flux:State(0)
+			local anim = Flux:Tween(state, TweenInfo.new(0.5))
+
+			state:Set(100) -- start animating
+			task.wait(0.1)
+			state:Set(25, false) -- instant write mid-flight
+			expect(anim:Get()).to.equal(25)
+
+			-- Confirm the old animation did not keep running.
+			task.wait(0.2)
+			expect(anim:Get()).to.equal(25)
 			anim:Destroy()
 		end)
 	end)

@@ -204,15 +204,16 @@ Interpolates toward the source value using `TweenInfo` for timing and easing. Su
 
 ```lua
 local health = Flux:State(100)
-local animHealth = Flux:Tween(health, TweenInfo.new(0.4, Enum.EasingStyle.Quad))
+local tween = Flux:Tween(health, TweenInfo.new(0.4, Enum.EasingStyle.Quad))
 
 local bar = controller:GetInstance():FindFirstChild("HealthBar") :: Frame
-controller:BindProperty(animHealth, bar, "Size")
+
+controller:BindProperty(tween, bar, "Size")
 
 health:Set(50) -- bar smoothly shrinks over 0.4s
 
 -- Clean up when done
-animHealth:Destroy()
+tween:Destroy()
 controller:Unmount() -- or Destroy
 ```
 
@@ -221,21 +222,41 @@ controller:Unmount() -- or Destroy
 Drives the value with spring physics — naturally overshoots when underdamped, settles cleanly when critically damped. **Supports** `number`, Vector2, Vector3, Color3, and UDim2 (not CFrame). The internal `Heartbeat` connection is only active while the spring is moving.
 
 ```lua
-local open = Flux:State(UDim2.fromScale(0, 0))
 -- speed = 20 (snappy), damping = 1 (critically damped, no overshoot)
-local animOpen = Flux:Spring(open, 20, 1)
+local open = Flux:State(UDim2.fromScale(0, 0))
+local spring = Flux:Spring(open, 20, 1)
 
 local panel = controller:GetInstance():FindFirstChild("Panel") :: Frame
-controller:BindProperty(animOpen, panel, "Size")
+controller:BindProperty(spring, panel, "Size")
 
 open:Set(UDim2.fromScale(1, 1)) -- panel springs open
 
 -- Clean up when done
-animOpen:Destroy()
+spring:Destroy()
 controller:Unmount() -- or Destroy
 ```
 
 Typical damping values: `1.0` = critically damped (no overshoot), `0.7` = slightly bouncy, `0.5` = noticeably springy.
+
+#### Instant writes
+
+`Set` takes an optional `animated` flag (default `true`). Pass `false` to make every `Tween` and `Spring` derived from that state jump to the value instantly, with no interpolation. Because the source state stays the single source of truth, the displayed value can never drift out of sync with it.
+
+```lua
+local position = Flux:State(targetPosition)
+local tween = Flux:Tween(position, TweenInfo.new(0.2))
+
+controller:BindProperty(tween, frame, "Position")
+
+tween:Completed(function()
+    print("slide-in finished")
+end)
+
+position:Set(startPosition, false) -- Jump to the start, no animation
+position:Set(targetPosition) -- Animates start -> target
+```
+
+An instant write still counts as arriving at the target, so `Completed` fires.
 
 ### Components
 

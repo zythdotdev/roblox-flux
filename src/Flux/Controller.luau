@@ -1,5 +1,5 @@
-local Bag = require(script.Parent.Packages.Bag)
-local Value = require(script.Parent.Packages.Value)
+local Bag = require(script.Parent.Parent.Bag)
+local State = require(script.Parent.State)
 
 --[=[
 	@within Controller
@@ -45,7 +45,7 @@ export type Component = (instance: Instance, scope: Scope, properties: {[string]
 	A reactive state object. Create these using `Flux:State` and pass them to
 	`Controller:Bind` or `Scope:Bind` inside components to reactively drive UI updates.
 ]=]
-export type State<T> = Value.Self<T>
+export type State<T> = State.Self<T>
 
 type Controller = {
 	_Instance: ScreenGui | SurfaceGui | BillboardGui,

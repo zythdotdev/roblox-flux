@@ -159,15 +159,20 @@ return function()
 			expect(callCount).to.equal(1)
 		end)
 
-		it("should self-clean when a dependency is destroyed", function()
+		it("should self-clean when a recompute hits a destroyed dependency", function()
+			-- Destroying a dependency does not notify the computed (Value:Destroy is silent), so the
+			-- self-clean is lazy: it triggers on the next recompute, when reading the dead dependency
+			-- throws. We force that recompute by changing the surviving dependency.
 			local base = Flux:State(2)
-			local computed = Flux:Computed(function(value)
-				return value * 2
-			end, { base })
+			local other = Flux:State(1)
+			local computed = Flux:Computed(function(value, factor)
+				return value * factor
+			end, { base, other })
 
-			expect(computed:Get()).to.equal(4)
+			expect(computed:Get()).to.equal(2)
 
 			base:Destroy()
+			other:Set(5) -- triggers recompute, which reads the destroyed `base` and self-cleans
 
 			expect(function()
 				computed:Get()
@@ -180,6 +185,72 @@ return function()
 
 			setter(42)
 			expect(state:Get()).to.equal(42)
+		end)
+
+		it("should update the value regardless of the animated flag", function()
+			local state = Flux:State(0)
+
+			state:Set(10, false)
+			expect(state:Get()).to.equal(10)
+
+			state:Set(20, true)
+			expect(state:Get()).to.equal(20)
+		end)
+
+		it("should default the animated flag to true", function()
+			local state = Flux:State(0)
+
+			expect(state:IsAnimated()).to.equal(true) -- default before any Set
+
+			-- After a Set returns, the pending intent resets to the default.
+			state:Set(1, false)
+			expect(state:IsAnimated()).to.equal(true)
+		end)
+
+		it("should expose the pending animated intent to observers during Set", function()
+			local state = Flux:State(0)
+			local seen = {}
+
+			state:Observe(function()
+				table.insert(seen, state:IsAnimated())
+			end)
+
+			state:Set(1) -- animated (default)
+			state:Set(2, false) -- instant
+			state:Set(3, true) -- animated
+
+			-- seen[1] is the initial observe fire (no in-flight Set) -> true.
+			expect(seen[2]).to.equal(true)
+			expect(seen[3]).to.equal(false)
+			expect(seen[4]).to.equal(true)
+		end)
+
+		it("should forward the animated flag through Setter", function()
+			local state = Flux:State(0)
+			local setter = state:Setter()
+			local seen = nil
+
+			state:Observe(function()
+				seen = state:IsAnimated()
+			end)
+
+			setter(5, false)
+			expect(state:Get()).to.equal(5)
+			expect(seen).to.equal(false)
+		end)
+
+		it("should still dedupe when set to the same value with animated false", function()
+			local state = Flux:State(7)
+			local callCount = 0
+
+			state:Observe(function()
+				callCount = callCount + 1
+			end)
+
+			expect(callCount).to.equal(1) -- initial
+
+			state:Set(7, false) -- same value
+			expect(callCount).to.equal(1)
 		end)
 
 		it("should clean up on Destroy", function()

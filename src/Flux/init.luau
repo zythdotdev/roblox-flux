@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 
-local Value = require(script.Packages.Value)
+local Value = require(script.Parent.Value)
+local State = require(script.State)
 local Controller = require(script.Controller)
 local Tween = require(script.Tween)
 local Spring = require(script.Spring)
@@ -42,20 +43,29 @@ export type Component = Controller.Component
 
 	A reactive state object. Create these using `Flux:State` and pass them to
 	`Controller:Bind` or `Scope:Bind` inside components to reactively drive UI updates.
+	`Set` accepts an optional `animated` flag (defaulting to `true`); pass `false` to make any
+	`Tween` or `Spring` derived from this state jump instantly instead of interpolating.
 ]=]
-export type State<T> = Value.Self<T>
+export type State<T> = State.Self<T>
 
 --[=[
 	@within Flux
 	@interface AnimatedState
+	@field Get (self) -> T? -- Returns the current animated value
+	@field Observe (self, callback: (T?) -> ()) -> EventConnection -- Fires immediately and on every animated value change
+	@field Completed (self, callback: () -> ()) -> EventConnection -- Fires each time the animation reaches its target and settles
+	@field Destroy (self) -> () -- Stops the animation and frees resources
 
 	A read-only animated state returned by `Flux:Tween` and `Flux:Spring`. Supports `Get`, `Observe`,
-	and `Destroy` — compatible with `Bind` and `BindProperty`. Call `Destroy` when you are finished
-	with it to stop the animation and free resources.
+	`Completed`, and `Destroy` — compatible with `Bind` and `BindProperty`. It is driven entirely by its
+	source `State`: write the source with `Set(value)` to animate toward `value`, or `Set(value, false)` to
+	jump instantly (e.g. to seed an entrance). Use `Completed` to run logic once the motion settles. Call
+	`Destroy` when you are finished with it to stop the animation and free resources.
 ]=]
 export type AnimatedState<T> = {
 	Get: (self: AnimatedState<T>) -> T?,
 	Observe: (self: AnimatedState<T>, callback: (T?) -> ()) -> Value.EventConnection,
+	Completed: (self: AnimatedState<T>, callback: () -> ()) -> Value.EventConnection,
 	Destroy: (self: AnimatedState<T>) -> (),
 }
 
@@ -124,7 +134,7 @@ local Flux = {}
 	```
 ]=]
 function Flux.State<T>(_self: Flux, initialValue: T?): State<T>
-	return Value.new(initialValue)
+	return State.new(initialValue)
 end
 
 --[=[
@@ -147,7 +157,7 @@ function Flux.Computed<T>(_self: Flux, callback: (...any) -> T, dependencies: {S
 		end
 	end
 
-	local computed = Value.new(nil)
+	local computed = State.new(nil)
 	local dependencyConnections: {Value.EventConnection} = {}
 	local isDestroyed = false
 
@@ -260,6 +270,22 @@ end
 	scope:BindProperty(animHealth, bar, "Size")
 	health:Set(50)
 	```
+
+	Pass `animated = false` to `source:Set` to seed a value instantly (no animation) and use `Completed`
+	to react when a tween settles. This is the idiomatic "seed-then-animate" entrance: jump to the start,
+	then animate to the rest value — all through the single source state.
+
+	```lua
+	local position = Flux:State(restPosition)
+	local animPosition = Flux:Tween(position, TweenInfo.new(0.2))
+	scope:BindProperty(animPosition, frame, "Position")
+
+	position:Set(startPosition, false) -- instant, no animation
+	position:Set(restPosition)         -- animates start -> rest
+	animPosition:Completed(function()
+		print("slide-in finished")
+	end)
+	```
 ]=]
 function Flux.Tween<T>(_self: Flux, source: State<T>, tweenInfo: TweenInfo): AnimatedState<T>
 	assert(source ~= nil, "[Flux] Tween: source state is required")
@@ -283,6 +309,18 @@ end
 	local animOpen = Flux:Spring(open, 20, 1)
 	scope:BindProperty(animOpen, panel, "Size")
 	open:Set(UDim2.fromScale(1, 1))
+	```
+
+	Like `Flux:Tween`, passing `animated = false` to `source:Set` jumps instantly to a value (resetting the
+	spring's position and velocity, with no motion), and `Completed` fires each time the spring settles at
+	its target.
+
+	```lua
+	open:Set(UDim2.fromScale(0, 0), false) -- instant, at rest
+	open:Set(UDim2.fromScale(1, 1))        -- springs toward full size
+	animOpen:Completed(function()
+		print("panel finished opening")
+	end)
 	```
 ]=]
 function Flux.Spring<T>(_self: Flux, source: State<T>, speed: number, damping: number): AnimatedState<T>

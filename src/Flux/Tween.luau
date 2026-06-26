@@ -1,11 +1,14 @@
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
-local Value = require(script.Parent.Packages.Value)
+local Value = require(script.Parent.Parent.Value)
+local Event = require(script.Parent.Parent.Event)
+local State = require(script.Parent.State)
 
 type AnimatedState<T> = {
 	Get: (self: AnimatedState<T>) -> T?,
 	Observe: (self: AnimatedState<T>, callback: (T?) -> ()) -> Value.EventConnection,
+	Completed: (self: AnimatedState<T>, callback: () -> ()) -> Value.EventConnection,
 	Destroy: (self: AnimatedState<T>) -> (),
 }
 
@@ -21,7 +24,7 @@ local function isFiniteNumber(value: number): boolean
 	return value == value and value ~= math.huge and value ~= -math.huge
 end
 
-local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedState<T>
+local function Tween<T>(source: State.Self<T>, tweenInfo: TweenInfo): AnimatedState<T>
 	assert(source ~= nil, "[Flux] Tween: source state is required")
 	assert(typeof(tweenInfo) == "TweenInfo", "[Flux] Tween: tweenInfo must be a TweenInfo")
 	assert(isFiniteNumber(tweenInfo.Time) and tweenInfo.Time >= 0, "[Flux] Tween: tweenInfo.Time must be a finite number >= 0")
@@ -31,10 +34,12 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 	end
 
 	local animated = Value.new(source:Get())
+	local completedEvent = Event.new()
 	local heartbeatConn: RBXScriptConnection? = nil
 	local started = false
 	local hadNilTarget = false
 	local isDestroyed = false
+	local lastValue: T? = source:Get()
 
 	local function cancelHeartbeat()
 		if heartbeatConn then
@@ -49,11 +54,20 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 			return
 		end
 
+		local animate = source:IsAnimated()
+
 		cancelHeartbeat()
 
 		if target == nil then
 			hadNilTarget = true
 			animated:Set(nil)
+			return
+		end
+
+		if not animate then
+			hadNilTarget = false
+			animated:Set(target)
+			completedEvent:Fire()
 			return
 		end
 
@@ -80,6 +94,7 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 
 		if duration <= 0 then
 			animated:Set(target)
+			completedEvent:Fire()
 			return
 		end
 
@@ -96,22 +111,31 @@ local function Tween<T>(source: Value.Self<T>, tweenInfo: TweenInfo): AnimatedSt
 			animated:Set(valueOrErr)
 			if alpha >= 1 then
 				cancelHeartbeat()
+				completedEvent:Fire()
 			end
 		end)
 	end)
 
 	local animatedState: AnimatedState<T> = {
 		Get = function(_self: AnimatedState<T>): T?
+			if isDestroyed then
+				return lastValue
+			end
 			return animated:Get()
 		end,
 		Observe = function(_self: AnimatedState<T>, callback: (T?) -> ()): Value.EventConnection
 			return animated:Observe(callback)
 		end,
+		Completed = function(_self: AnimatedState<T>, callback: () -> ()): Value.EventConnection
+			return completedEvent:Connect(callback)
+		end,
 		Destroy = function(_self: AnimatedState<T>)
 			if isDestroyed then return end
+			lastValue = animated:Get()
 			isDestroyed = true
 			cancelHeartbeat()
 			sourceConn:Disconnect()
+			completedEvent:Destroy()
 			animated:Destroy()
 		end,
 	}

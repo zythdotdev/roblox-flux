@@ -4,19 +4,31 @@
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"$path": "example/Client",
 			"Packages": {
 				"$className": "Folder",
-				"$path": "src"
+				"Flux": {
+					"$path": "src/Flux"
+				},
+				"Bag": {
+					"$path": "src/Flux/Packages/Bag.lua"
+				},
+				"Value": {
+					"$path": "src/Flux/Packages/Value.lua"
+				},
+				"Event": {
+					"$path": "src/Flux/Packages/Event.lua"
+				},
+				"_Index": {
+					"$path": "src/Flux/Packages/_Index"
+				},
+				"TestEZ": {
+					"$path": "src/TestEZ"
+				}
 			},
 			"Tests": {
 				"$className": "Folder",
 				"$path": "test/Specs"
 			}
-		},
-		"ServerScriptService": {
-			"$className": "ServerScriptService",
-			"$path": "example/Server"
 		}
 	}
 }
