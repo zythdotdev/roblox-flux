@@ -76,8 +76,8 @@ type Flux = {
 	Tween: <T>(self: Flux, source: State<T>, tweenInfo: TweenInfo) -> AnimatedState<T>,
 	Spring: <T>(self: Flux, source: State<T>, speed: number, damping: number) -> AnimatedState<T>,
 	MountScreenGui: (self: Flux, gui: ScreenGui) -> Controller.Self,
-	MountSurfaceGui: (self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?) -> Controller.Self,
-	MountBillboardGui: (self: Flux, gui: BillboardGui, adornee: BasePart) -> Controller.Self,
+	MountSurfaceGui: (self: Flux, gui: SurfaceGui, adornee: Instance?, face: Enum.NormalId?) -> Controller.Self,
+	MountBillboardGui: (self: Flux, gui: BillboardGui, adornee: Instance?) -> Controller.Self,
 }
 
 --[=[
@@ -351,17 +351,20 @@ end
 
 --[=[
 	@param gui SurfaceGui -- The GUI instance to mount
-	@param adornee BasePart -- The part the SurfaceGui will be attached to
+	@param adornee Instance? -- The instance the SurfaceGui will be attached to (optional, can be set later via the GUI's `Adornee`)
 	@param face Enum.NormalId? -- The face of the part the SurfaceGui will be attached to (optional)
 	@return Controller
 
 	Sets the `Adornee` (and optionally `Face`) on the given `SurfaceGui`, parents it to the local
 	player's `PlayerGui`, and returns a `Controller` that owns its lifecycle. The caller is
-	responsible for cloning templates before passing them in.
+	responsible for cloning templates before passing them in. The `adornee` may be omitted to mount
+	the GUI now and assign its `Adornee` later.
 ]=]
-function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: BasePart, face: Enum.NormalId?): Controller.Self
+function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: Instance?, face: Enum.NormalId?): Controller.Self
 	assert(typeof(gui) == "Instance" and gui:IsA("SurfaceGui"), "[Flux] MountSurfaceGui: gui must be a SurfaceGui")
-	assert(typeof(adornee) == "Instance" and adornee:IsA("BasePart"), "[Flux] MountSurfaceGui: adornee must be a BasePart")
+	if adornee ~= nil then
+		assert(typeof(adornee) == "Instance", "[Flux] MountSurfaceGui: adornee must be an Instance")
+	end
 	if face ~= nil then
 		assert(typeof(face) == "EnumItem" and face.EnumType == Enum.NormalId, "[Flux] MountSurfaceGui: face must be an Enum.NormalId")
 	end
@@ -369,7 +372,9 @@ function Flux.MountSurfaceGui(_self: Flux, gui: SurfaceGui, adornee: BasePart, f
 	local localPlayer = Players.LocalPlayer
 	assert(localPlayer, "[Flux] MountSurfaceGui: LocalPlayer not available")
 
-	gui.Adornee = adornee
+	if adornee then
+		gui.Adornee = adornee
+	end
 	if face then
 		gui.Face = face
 	end
@@ -380,21 +385,26 @@ end
 
 --[=[
 	@param gui BillboardGui -- The GUI instance to mount
-	@param adornee BasePart -- The part the BillboardGui will be attached to
+	@param adornee Instance? -- The instance the BillboardGui will be attached to (optional, can be set later via the GUI's `Adornee`)
 	@return Controller
 
 	Sets the `Adornee` on the given `BillboardGui`, parents it to the local player's `PlayerGui`,
 	and returns a `Controller` that owns its lifecycle. The caller is responsible for cloning
-	templates before passing them in.
+	templates before passing them in. The `adornee` may be omitted to mount the GUI now and assign
+	its `Adornee` later.
 ]=]
-function Flux.MountBillboardGui(_self: Flux, gui: BillboardGui, adornee: BasePart): Controller.Self
+function Flux.MountBillboardGui(_self: Flux, gui: BillboardGui, adornee: Instance?): Controller.Self
 	assert(typeof(gui) == "Instance" and gui:IsA("BillboardGui"), "[Flux] MountBillboardGui: gui must be a BillboardGui")
-	assert(typeof(adornee) == "Instance" and adornee:IsA("BasePart"), "[Flux] MountBillboardGui: adornee must be a BasePart")
+	if adornee ~= nil then
+		assert(typeof(adornee) == "Instance", "[Flux] MountBillboardGui: adornee must be an Instance")
+	end
 
 	local localPlayer = Players.LocalPlayer
 	assert(localPlayer, "[Flux] MountBillboardGui: LocalPlayer not available")
 
-	gui.Adornee = adornee
+	if adornee then
+		gui.Adornee = adornee
+	end
 	gui.Parent = localPlayer.PlayerGui
 
 	return Controller.new(gui)
